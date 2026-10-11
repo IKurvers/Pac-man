@@ -30,6 +30,16 @@
   (major1) == 1 && (major2) <  13 || \
   (major1) == 1 && (major2) == 13 && (minor) <= 2)
 #endif /* MIN_VERSION_gloss */
+/* package gloss-juicy-0.2.3 */
+#ifndef VERSION_gloss_juicy
+#define VERSION_gloss_juicy "0.2.3"
+#endif /* VERSION_gloss_juicy */
+#ifndef MIN_VERSION_gloss_juicy
+#define MIN_VERSION_gloss_juicy(major1,major2,minor) (\
+  (major1) <  0 || \
+  (major1) == 0 && (major2) <  2 || \
+  (major1) == 0 && (major2) == 2 && (minor) <= 3)
+#endif /* MIN_VERSION_gloss_juicy */
 /* package random-1.3.1 */
 #ifndef VERSION_random
 #define VERSION_random "1.3.1"

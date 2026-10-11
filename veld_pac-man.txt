@@ -1,10 +1,29 @@
-w w w w w w w w w w
-w o o o w o o o o w
-w o w o w o w o o w
-w o o o o o o o o w
-w o w w o o w w o w
-w w w w o w w w o w
-o o w w o w o o o o
-w o o w o w o w w w
-w o o o o o o o o w
-w w w w w w w w w w
+w w w w w w w w w w w w w w w w w w w w w w w w w w w w
+w o o o o o o o o o o o o w w o o o o o o o o o o o o w
+w o w w w w o w w w w w o w w o w w w w w o w w w w o w
+w o w w w w o w w w w w o w w o w w w w w o w w w w o w
+w o w w w w o w w w w w o w w o w w w w w o w w w w o w
+w o o o o o o o o o o o o o o o o o o o o o o o o o o w
+w o w w w w o w w o w w w w w w w w o w w o w w w w o w
+w o w w w w o w w o w w w w w w w w o w w o w w w w o w
+w o o o o o o w w o o o o w w o o o o w w o o o o o o w
+w w w w w w o w w w w w o w w o w w w w w o w w w w w w
+n n n n n w o w w w w w o w w o w w w w w o w n n n n n
+n n n n n w o w w o o o o o o o o o o w w o w n n n n n 
+w w w w w w o w w o l - - d d - - r o w w o w w w w w w
+o o o o o o o o o o l n n n n n n r o o o o o o o o o o
+w w w w w w o w w o l _ _ _ _ _ _ r o w w o w w w w w w 
+n n n n n w o w w o o o o o o o o o o w w o w n n n n n
+n n n n n w o w w o w w w w w w w w o w w o w n n n n n
+w w w w w w o w w o w w w w w w w w o w w o w w w w w w
+w o o o o o o o o o o o o w w o o o o o o o o o o o o w
+w o w w w w o w w w w w o w w o w w w w w o w w w w o w
+w o w w w w o w w w w w o w w o w w w w w o w w w w o w
+w o o o w w o o o o o o o o o o o o o o o o w w o o o w
+w w w o w w o w w o w w w w w w w w o w w o w w o w w w 
+w w w o w w o w w o w w w w w w w w o w w o w w o w w w 
+w o o o o o o w w o o o o w w o o o o w w o o o o o o w
+w o w w w w w w w w w w o w w o w w w w w w w w w w o w
+w o w w w w w w w w w w o w w o w w w w w w w w w w o w
+w o o o o o o o o o o o o o o o o o o o o o o o o o o w
+w w w w w w w w w w w w w w w w w w w w w w w w w w w w
