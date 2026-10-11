@@ -10,15 +10,15 @@ view = return . viewPure
 
 viewPure :: GameState -> Picture
 viewPure gstate = pictures 
-        [ draw,
-          color yellow(circleSolid 10)]
-{-
-drawWall :: Float -> Float -> Float -> Float -> Picture
-drawWall x y b h = color blue(translate x y (rectangleWire b h))
--}
-draw = do
-        input <- readFile "veld_pac-man.txt" 
-        teken . map read . words $ input
+        [ tekenVeld (veld gstate) (200),
+          color yellow(circleSolid 25)]
 
-teken :: [String] -> Picture
-teken input@(h:t) = 
+tekenVeld :: [[String]] -> Float -> Picture
+tekenVeld [] y = Blank
+tekenVeld input@(h:t) y = pictures [tekenLine h (-200) y, tekenVeld t (y-30)]
+
+tekenLine :: [String] -> Float -> Float -> Picture
+tekenLine [] x y = Blank
+tekenLine input@(h:t) x y | h=="w"        = pictures [translate x y (color blue(rectangleSolid 30 30)), tekenLine t (x+30) y]
+                          | h=="o"        = pictures [translate x y (color yellow(circleSolid 5)), tekenLine t (x+30) y]
+                          | otherwise     = tekenLine t (x+30) y

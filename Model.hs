@@ -12,7 +12,8 @@ nO_SECS_BETWEEN_CYCLES = 5
 data GameState = GameState {
                    infoToShow  :: InfoToShow
                  , elapsedTime :: Float
+                 , veld        :: [[String]]
                  }
 
 initialState :: GameState
-initialState = GameState ShowNothing 0
+initialState = GameState ShowNothing 0 []
