@@ -14,14 +14,18 @@ main = do
     let beginstaat = initialState {veld = beginveld}
 
     pacmanZelf <- loadJuicyPNG "pacman-zelf.png"
-    case pacmanZelf of
-        Just plaatje -> do
+    geest1 <- loadJuicyPNG "geest1.png"
+    geest2 <- loadJuicyPNG "geest2.png"
+    geest3 <- loadJuicyPNG "geest3.png"
+    geest4 <- loadJuicyPNG "geest4.png"
+    case (pacmanZelf,geest1,geest2,geest3,geest4) of
+        (Just pac, Just g1,Just g2,Just g3,Just g4) -> 
             playIO (InWindow "Pac-man" (620, 650) (340, 0)) 
                     black            -- Background color
                     10               -- Frames per second
                     beginstaat     -- Initial state
-                    (view plaatje)            -- View function
+                    (view pac g1 g2 g3 g4)            -- View function
                     input            -- Event function
                     step             -- Step function
-        Nothing ->
+        _ ->
             putStrLn "Afbeelding kon niet worden geladen"
