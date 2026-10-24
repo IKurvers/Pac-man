@@ -109,3 +109,4 @@ updateGhost grid dt target g
 moveGhost :: Grid -> Bool -> Cell -> Dir -> Float -> BaseGhost -> BaseGhost
 moveGhost grid isHunting playerCell playerDir dt g =
   updateGhost grid dt (ghostTarget grid isHunting playerCell playerDir g) g
+
