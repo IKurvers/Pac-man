@@ -13,6 +13,7 @@ executable Pac-man
                        gloss,
                        random,
                        gloss-juicy
+                       random
   hs-source-dirs:      .
   other-modules:       Controller
                      , Model
