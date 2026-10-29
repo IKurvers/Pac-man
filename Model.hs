@@ -1,21 +1,22 @@
--- | This module contains the data types
---   which represent the state of the game
 module Model where
 
-data InfoToShow = ShowNothing
-                | ShowANumber Int
-                | ShowAChar   Char
+import BaseGhost (BaseGhost, GhostName (..), newGhost)
+import Player (Player, initialPlayer)
 
-nO_SECS_BETWEEN_CYCLES :: Float
-nO_SECS_BETWEEN_CYCLES = 0
+data GameState = GameState
+  { veld :: [[String]]
+  , player :: Player
+  , ghosts :: [BaseGhost]
+  }
 
-data GameState = GameState {
-                   infoToShow  :: InfoToShow
-                 , elapsedTime :: Float
-                 {-, pac         :: BasePac
-                 , geest       :: BaseGhost-}
-                 , veld        :: [[String]]
-                 }
-
-initialState :: GameState
-initialState = GameState ShowNothing 0 []
+initialState :: [[String]] -> GameState
+initialState grid = GameState
+  { veld = grid
+  , player = initialPlayer (13, 21)
+  , ghosts =
+      [ newGhost Blinky (13, 11)
+      , newGhost Pinky (14, 11)
+      , newGhost Inky (15, 11)
+      , newGhost Clyde (16, 11)
+      ]
+  }

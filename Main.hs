@@ -12,7 +12,7 @@ main :: IO ()
 main = do
     tekstinput <- readFile "veld_pac-man.txt"
     let beginveld = map words (lines tekstinput)
-    let beginstaat = initialState {veld = beginveld}
+    let beginstaat = initialState beginveld
     
     gen <- getStdGen
 

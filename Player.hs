@@ -2,7 +2,7 @@ module Player where
 
 import Graphics.Gloss.Interface.IO.Game
 
-type Grid = [[Int]]
+type Grid = [[String]]
 type Cell = (Int, Int)
 
 data Dir = DUp | DDown | DLeft | DRight | DNone
@@ -18,16 +18,16 @@ data Player = Player
   hunting  :: Int
   } deriving (Show, Eq)
 
+-- Constant speed
 speed :: Float
 speed = 6
 
-wallValue :: Int
-wallValue = 1
-
+-- Places the player at the start of the game
 initialPlayer :: Cell -> Player
 initialPlayer c = Player
   { cell = c, next = c, moving = DNone, wanted = DNone, progress = 0, hunting = 0 }
 
+-- Input handler that handles WASD and arrows, even with caps lock on
 handleInput :: Event -> Player -> Player
 handleInput (EventKey (Char k) Down _ _) p = case k of
   'w' -> p { wanted = DUp }
@@ -47,6 +47,7 @@ handleInput (EventKey (SpecialKey k) Down _ _) p = case k of
   _        -> p
 handleInput _ p = p
 
+-- Smooth positioning for visuals
 smoothCell :: Player -> (Float, Float)
 smoothCell p = (fromIntegral c + fromIntegral (nc - c) * t,
                 fromIntegral r + fromIntegral (nr - r) * t)
@@ -55,6 +56,7 @@ smoothCell p = (fromIntegral c + fromIntegral (nc - c) * t,
     (nc, nr) = next p
     t        = progress p
 
+-- Direction to vector for math
 toVector :: Dir -> (Int, Int)
 toVector DUp    = (0, -1)
 toVector DDown  = (0, 1)
@@ -62,6 +64,7 @@ toVector DLeft  = (-1, 0)
 toVector DRight = (1, 0)
 toVector DNone  = (0, 0)
 
+-- Easy way to get the opposite direction
 opposite :: Dir -> Dir
 opposite DUp    = DDown
 opposite DDown  = DUp
@@ -69,16 +72,19 @@ opposite DLeft  = DRight
 opposite DRight = DLeft
 opposite DNone  = DNone
 
+-- Moves you one cell in the direction
 stepCell :: Dir -> Cell -> Cell
 stepCell d (c, r) = (c + dx, r + dy)
   where (dx, dy) = toVector d
 
+-- Wall Checker (True if wall)
 isWall :: Grid -> Cell -> Bool
 isWall grid (c, r)
   | r < 0 || r >= length grid = True
   | c < 0 || c >= length (grid !! r) = True
-  | otherwise = grid !! r !! c == wallValue
+  | otherwise = grid !! r !! c == "w" || grid !! r !! c == "n"
 
+-- Main updator of the player functions. Handles movement, directions etc.
 updatePlayer :: Grid -> Float -> Player -> Player
 updatePlayer grid dt p
   | moving p /= DNone && wanted p == opposite (moving p) =
@@ -92,7 +98,7 @@ updatePlayer grid dt p
   where
     t = progress p + speed * min dt 0.05
 
-
+-- Main helper function for movement
 settle :: Grid -> Player -> Player
 settle grid p = case pick of
   DNone -> p { moving = DNone, next = cell p, progress = 0 }

@@ -1,9 +1,9 @@
--- | This module defines how to turn
---   the game state into a picture
 module View where
 
 import Graphics.Gloss
 import Model
+import qualified BaseGhost as G
+import qualified Player as P
 import System.Random
 
 view :: StdGen -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> IO Picture
@@ -13,11 +13,27 @@ view gen pac g1 g2 g3 g4 f gstate = do
 viewPure :: Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> StdGen -> Picture
 viewPure pacmanZelf geest1 geest2 geest3 geest4 fruit gstate gen = pictures 
         [ fst (tekenVeld fruit (veld gstate) (280) gen),
-          translate (-10) 60 (scale 0.06 0.06 pacmanZelf),
-          translate (-40) 20 (scale 0.06 0.06 geest1),
-          translate (-10) 20 (scale 0.06 0.06 geest2),
-          translate (20) 20 (scale 0.06 0.06 geest3),
-          translate (50) 20 (scale 0.06 0.06 geest4)]
+          drawPlayer pacmanZelf (player gstate),
+          pictures (map drawGhost (ghosts gstate))]
+  where
+    drawGhost ghost = translate x y (scale 0.06 0.06 (ghostImage ghost))
+      where
+        (col, row) = G.ghostPosition ghost
+        (x, y) = gridToScreen col row
+        ghostImage g = case G.ghostName g of
+          G.Blinky -> geest1
+          G.Pinky -> geest2
+          G.Inky -> geest3
+          G.Clyde -> geest4
+
+drawPlayer :: Picture -> P.Player -> Picture
+drawPlayer image p = translate x y (scale 0.06 0.06 image)
+  where
+    (col, row) = P.smoothCell p
+    (x, y) = gridToScreen col row
+
+gridToScreen :: Float -> Float -> (Float, Float)
+gridToScreen col row = (-270 + col * 20, 280 - row * 20)
 
 tekenVeld :: Picture -> [[String]] -> Float -> StdGen -> (Picture, StdGen)
 tekenVeld _ [] y g = (Blank,g)
