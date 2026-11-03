@@ -82,7 +82,7 @@ isWall :: Grid -> Cell -> Bool
 isWall grid (c, r)
   | r < 0 || r >= length grid = True
   | c < 0 || c >= length (grid !! r) = True
-  | otherwise = grid !! r !! c == "w" || grid !! r !! c == "n"
+  | otherwise = grid !! r !! c == "w" || grid !! r !! c == "n" || grid !! r !! c == "r" || grid !! r !! c == "l" || grid !! r !! c == "_" || grid !! r !! c == "-" || grid !! r !! c == "d"
 
 -- Main updator of the player functions. Handles movement, directions etc.
 updatePlayer :: Grid -> Float -> Player -> Player

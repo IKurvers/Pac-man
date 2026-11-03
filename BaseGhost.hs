@@ -4,7 +4,7 @@ import Data.List (minimumBy)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
 
-import Player (Grid, Cell, Dir (..), isWall, stepCell, toVector)
+import Player (Grid, Cell, Dir (..), stepCell, toVector)
 
 data GhostName = Blinky | Pinky | Inky | Clyde
   deriving (Show, Eq)
@@ -73,6 +73,14 @@ directions = [DUp, DLeft, DDown, DRight]
 -- Basic pythagorean formula
 distTo :: Cell -> Cell -> Int
 distTo (a, b) (c, d) = (a - c) ^ 2 + (b - d) ^ 2
+
+-- Wall Checker (True if wall) Ghosts can go through the doors (d), so we do not reuse the isWall from Player.hs
+isWall :: Grid -> Cell -> Bool
+isWall grid (c, r)
+  | r < 0 || r >= length grid = True
+  | c < 0 || c >= length (grid !! r) = True
+  | otherwise = grid !! r !! c == "w" || grid !! r !! c == "n" || grid !! r !! c == "r" || grid !! r !! c == "l" || grid !! r !! c == "_" || grid !! r !! c == "-"
+
 
 
 -- Iplementation of BFS on the grid.
