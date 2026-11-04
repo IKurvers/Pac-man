@@ -8,6 +8,9 @@ type Cell = (Int, Int)
 data Dir = DUp | DDown | DLeft | DRight | DNone
   deriving (Show, Eq)
 
+data Pict = PacU | PacD | PacL | PacR
+  deriving (Show, Eq)
+
 data Player = Player
   {
   cell     :: Cell,
@@ -15,7 +18,8 @@ data Player = Player
   moving   :: Dir,
   wanted   :: Dir,
   progress :: Float,
-  hunting  :: Int
+  hunting  :: Int,
+  pict     :: Pict
   } deriving (Show, Eq)
 
 -- Constant speed
@@ -25,25 +29,25 @@ speed = 6
 -- Places the player at the start of the game
 initialPlayer :: Cell -> Player
 initialPlayer c = Player
-  { cell = c, next = c, moving = DNone, wanted = DNone, progress = 0, hunting = 0 }
+  { cell = c, next = c, moving = DNone, wanted = DNone, progress = 0, hunting = 0, pict = PacR }
 
 -- Input handler that handles WASD and arrows, even with caps lock on
 handleInput :: Event -> Player -> Player
 handleInput (EventKey (Char k) Down _ _) p = case k of
-  'w' -> p { wanted = DUp }
-  's' -> p { wanted = DDown }
-  'a' -> p { wanted = DLeft }
-  'd' -> p { wanted = DRight }
-  'W' -> p { wanted = DUp }
-  'S' -> p { wanted = DDown }
-  'A' -> p { wanted = DLeft }
-  'D' -> p { wanted = DRight }
+  'w' -> p { wanted = DUp, pict = PacU }
+  's' -> p { wanted = DDown, pict = PacD }
+  'a' -> p { wanted = DLeft, pict = PacL }
+  'd' -> p { wanted = DRight, pict = PacR }
+  'W' -> p { wanted = DUp, pict = PacU }
+  'S' -> p { wanted = DDown, pict = PacD }
+  'A' -> p { wanted = DLeft, pict = PacL }
+  'D' -> p { wanted = DRight, pict = PacR }
   _   -> p
 handleInput (EventKey (SpecialKey k) Down _ _) p = case k of
-  KeyUp    -> p { wanted = DUp }
-  KeyDown  -> p { wanted = DDown }
-  KeyLeft  -> p { wanted = DLeft }
-  KeyRight -> p { wanted = DRight }
+  KeyUp    -> p { wanted = DUp, pict = PacU }
+  KeyDown  -> p { wanted = DDown, pict = PacD }
+  KeyLeft  -> p { wanted = DLeft, pict = PacL }
+  KeyRight -> p { wanted = DRight, pict = PacR }
   _        -> p
 handleInput _ p = p
 
@@ -73,8 +77,13 @@ opposite DRight = DLeft
 opposite DNone  = DNone
 
 -- Moves you one cell in the direction
-stepCell :: Dir -> Cell -> Cell
-stepCell d (c, r) = (c + dx, r + dy)
+-- toevegoed: naar de andere kant van het scherm kunnen teleporteren
+stepCell :: Grid -> Dir -> Cell -> Cell
+stepCell grid d (c, r) | c == 0                       = (length (grid !! r) - 1 + dx, r + dy)
+                       | c == length (grid !! r) -1   = (dx, r + dy)
+                       | r == 0                       = (c + dx, length grid - 1 + dy)
+                       | r == length grid -1          = (c + dx, dy)
+                       | otherwise                    = (c + dx, r + dy)
   where (dx, dy) = toVector d
 
 -- Wall Checker (True if wall)
@@ -82,7 +91,8 @@ isWall :: Grid -> Cell -> Bool
 isWall grid (c, r)
   | r < 0 || r >= length grid = True
   | c < 0 || c >= length (grid !! r) = True
-  | otherwise = grid !! r !! c == "w" || grid !! r !! c == "n"
+  -- toegevoegd: ook het startvak van de geestjes is een muur
+  | otherwise = grid !! r !! c == "w" || grid !! r !! c == "n" || grid !! r !! c == "r" || grid !! r !! c == "l" || grid !! r !! c == "-" || grid !! r !! c == "_"
 
 -- Main updator of the player functions. Handles movement, directions etc.
 updatePlayer :: Grid -> Float -> Player -> Player
@@ -102,9 +112,9 @@ updatePlayer grid dt p
 settle :: Grid -> Player -> Player
 settle grid p = case pick of
   DNone -> p { moving = DNone, next = cell p, progress = 0 }
-  d     -> p { moving = d, next = stepCell d (cell p) }
+  d     -> p { moving = d, next = stepCell grid d (cell p) }
   where
-    open d = d /= DNone && not (isWall grid (stepCell d (cell p)))
+    open d = d /= DNone && not (isWall grid (stepCell grid d (cell p)))
     pick
       | open (wanted p) = wanted p
       | open (moving p) = moving p

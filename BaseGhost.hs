@@ -94,7 +94,7 @@ reachable grid start = go (Set.singleton start) [(start, DNone)]
           | otherwise =
               ( acc ++ [(n, if firstDir == DNone then d else firstDir)]
               , Set.insert n s )
-          where n = stepCell d c
+          where n = stepCell grid d c
 
 -- Moves you in the direction of target, to the cell that reduces the distance the most
 firstStep :: Grid -> Cell -> Cell -> Dir
@@ -106,7 +106,7 @@ firstStep grid start target =
 settleGhost :: Grid -> Cell -> BaseGhost -> BaseGhost
 settleGhost grid target g = case firstStep grid (ghostCell g) target of
   DNone -> g { moving = DNone, nextCell = ghostCell g, progress = 0 }
-  d     -> g { moving = d, nextCell = stepCell d (ghostCell g) }
+  d     -> g { moving = d, nextCell = stepCell grid d (ghostCell g) }
 
 -- Updates the ghost, moving it towards the target or changing direction
 updateGhost :: Grid -> Float -> Cell -> BaseGhost -> BaseGhost

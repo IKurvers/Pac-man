@@ -7,6 +7,7 @@ data GameState = GameState
   { veld :: [[String]]
   , player :: Player
   , ghosts :: [BaseGhost]
+  , score :: Int
   }
 
 initialState :: [[String]] -> GameState
@@ -19,4 +20,5 @@ initialState grid = GameState
       , newGhost Inky (15, 11)
       , newGhost Clyde (16, 11)
       ]
+  , score = 0
   }

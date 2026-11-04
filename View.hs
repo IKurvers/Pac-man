@@ -6,14 +6,28 @@ import qualified BaseGhost as G
 import qualified Player as P
 import System.Random
 
-view :: StdGen -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> IO Picture
-view gen pac g1 g2 g3 g4 f gstate = do
-  return(viewPure pac g1 g2 g3 g4 f gstate gen)
+data Pict = Pict
+  { pacmanUp    :: Picture
+  , pacmanDown  :: Picture
+  , pacmanLeft  :: Picture
+  , pacmanRight :: Picture
+  }
 
-viewPure :: Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> StdGen -> Picture
-viewPure pacmanZelf geest1 geest2 geest3 geest4 fruit gstate gen = pictures 
-        [ fst (tekenVeld fruit (veld gstate) (280) gen),
-          drawPlayer pacmanZelf (player gstate),
+getPacmanPicture :: Pict -> P.Pict -> Picture
+getPacmanPicture pics p = case p of
+    P.PacU -> pacmanUp pics
+    P.PacD -> pacmanDown pics
+    P.PacL -> pacmanLeft pics
+    P.PacR -> pacmanRight pics
+
+view :: StdGen -> Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> IO Picture
+view gen pics g1 g2 g3 g4 k gstate = do
+  return(viewPure pics g1 g2 g3 g4 k gstate gen)
+
+viewPure :: Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> StdGen -> Picture
+viewPure pics geest1 geest2 geest3 geest4 kers gstate gen = pictures
+        [ fst (tekenVeld kers (veld gstate) 280 gen),
+          drawPlayer pics (player gstate),
           pictures (map drawGhost (ghosts gstate))]
   where
     drawGhost ghost = translate x y (scale 0.06 0.06 (ghostImage ghost))
@@ -26,11 +40,12 @@ viewPure pacmanZelf geest1 geest2 geest3 geest4 fruit gstate gen = pictures
           G.Inky -> geest3
           G.Clyde -> geest4
 
-drawPlayer :: Picture -> P.Player -> Picture
-drawPlayer image p = translate x y (scale 0.06 0.06 image)
+drawPlayer :: Pict -> P.Player -> Picture
+drawPlayer pics p = translate x y (scale 0.06 0.06 image)
   where
     (col, row) = P.smoothCell p
     (x, y) = gridToScreen col row
+    image = getPacmanPicture pics (P.pict p)
 
 gridToScreen :: Float -> Float -> (Float, Float)
 gridToScreen col row = (-270 + col * 20, 280 - row * 20)
