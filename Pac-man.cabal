@@ -18,6 +18,4 @@ executable Pac-man
   other-modules:       Controller
                      , Model
                      , View
-                     , Player
-                     , BaseGhost
   default-language:    Haskell2010

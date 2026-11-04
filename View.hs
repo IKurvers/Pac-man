@@ -2,8 +2,7 @@ module View where
 
 import Graphics.Gloss
 import Model
-import qualified BaseGhost as G
-import qualified Player as P
+import Controller
 import System.Random
 
 data Pict = Pict
@@ -13,12 +12,12 @@ data Pict = Pict
   , pacmanRight :: Picture
   }
 
-getPacmanPicture :: Pict -> P.Pict -> Picture
+getPacmanPicture :: Pict -> PacPict -> Picture
 getPacmanPicture pics p = case p of
-    P.PacU -> pacmanUp pics
-    P.PacD -> pacmanDown pics
-    P.PacL -> pacmanLeft pics
-    P.PacR -> pacmanRight pics
+    PacU -> pacmanUp pics
+    PacD -> pacmanDown pics
+    PacL -> pacmanLeft pics
+    PacR -> pacmanRight pics
 
 view :: StdGen -> Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> IO Picture
 view gen pics g1 g2 g3 g4 k gstate = do
@@ -32,20 +31,20 @@ viewPure pics geest1 geest2 geest3 geest4 kers gstate gen = pictures
   where
     drawGhost ghost = translate x y (scale 0.06 0.06 (ghostImage ghost))
       where
-        (col, row) = G.ghostPosition ghost
+        (col, row) = ghostPosition ghost
         (x, y) = gridToScreen col row
-        ghostImage g = case G.ghostName g of
-          G.Blinky -> geest1
-          G.Pinky -> geest2
-          G.Inky -> geest3
-          G.Clyde -> geest4
+        ghostImage g = case ghostName g of
+          Blinky -> geest1
+          Pinky -> geest2
+          Inky -> geest3
+          Clyde -> geest4
 
-drawPlayer :: Pict -> P.Player -> Picture
+drawPlayer :: Pict -> Player -> Picture
 drawPlayer pics p = translate x y (scale 0.06 0.06 image)
   where
-    (col, row) = P.smoothCell p
+    (col, row) = smoothCell p
     (x, y) = gridToScreen col row
-    image = getPacmanPicture pics (P.pict p)
+    image = getPacmanPicture pics (pict p)
 
 gridToScreen :: Float -> Float -> (Float, Float)
 gridToScreen col row = (-270 + col * 20, 280 - row * 20)

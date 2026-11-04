@@ -36,14 +36,16 @@ fruitPoints Orange = 500
 fruitPoints Apple = 700
 fruitPoints Melon = 1000
 
+-- toevoegen: huidige locatie
 eatenItem :: GameState -> Item -> GameState
 eatenItem gameState item = case itemType item of
-    SmallDot -> gameState { score = score gameState + points SmallDot}
-    BigDot -> gameState { score = score gameState + points BigDot, hunting = 10 }
-    Fruit -> gameState { score = score gameState + fruitPoints (fruitType item) }
+    SmallDot -> gameState { score = score gameState + points SmallDot, veld = newveld}
+    BigDot -> gameState { score = score gameState + points BigDot, hunting = 10, veld = newveld}
+    Fruit -> gameState { score = score gameState + fruitPoints (fruitType item), veld = newveld}
+        where newveld = replaceAt "n" x y veld
 
-{-
-delSmallDot :: Grid -> Grid
-delSmallDot [] = []
-delSmallDot 
--}
+replaceAt :: String -> Int -> Int -> Grid -> Grid
+replaceAt _ _ _ [] = []
+replaceAt s 0 0 ((x:xs):ys) = ((s:xs):ys)
+replaceAt s i 0 ((x:xs):ys) = ((x: replaceAt s (i-1) 0 xs): ys)
+replaceAt s i j ((x:xs):ys) = ((x:xs): replaceAt s i (j-1) ys)
