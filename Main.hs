@@ -1,7 +1,7 @@
 module Main where
 
 import Controller
-import Model
+import Model 
 import View
 
 import Graphics.Gloss.Interface.IO.Game
@@ -13,23 +13,39 @@ main = do
     tekstinput <- readFile "veld_pac-man.txt"
     let beginveld = map words (lines tekstinput)
     let beginstaat = initialState beginveld
-    
+
     gen <- getStdGen
 
-    pacmanZelf <- loadJuicyPNG "pacman-zelf.png"
+    pics <- loadPictures
+
     geest1 <- loadJuicyPNG "geest1.png"
     geest2 <- loadJuicyPNG "geest2.png"
     geest3 <- loadJuicyPNG "geest3.png"
     geest4 <- loadJuicyPNG "geest4.png"
-    fruit <- loadJuicyPNG "fruit.png"
-    case (pacmanZelf,geest1,geest2,geest3,geest4,fruit) of
-        (Just pac, Just g1,Just g2,Just g3,Just g4,Just f) -> 
-            playIO (InWindow "Pac-man" (620, 650) (340, 0)) 
-                    black            -- Background color
-                    10               -- Frames per second
-                    beginstaat     -- Initial state
-                    (view gen pac g1 g2 g3 g4 f)            -- View function
-                    input            -- Event function
-                    step             -- Step function
-        _ ->
-            putStrLn "Afbeelding kon niet worden geladen"
+    kers <- loadJuicyPNG "cherry.png"
+    hart <- loadJuicyPNG "hart.png"
+
+    case (pics, geest1, geest2, geest3, geest4, kers, hart) of
+        (Just ps, Just g1, Just g2, Just g3, Just g4, Just k, Just h) ->
+            playIO (InWindow "Pac-man" (620, 685) (340, 0))
+                    black
+                    10
+                    beginstaat
+                    (view gen ps g1 g2 g3 g4 k h)
+                    input
+                    step
+
+        _ -> putStrLn "Afbeelding kon niet worden geladen"
+
+
+loadPictures :: IO (Maybe Pict)
+loadPictures = do
+    up    <- loadJuicyPNG "pacmanU.png"
+    down  <- loadJuicyPNG "pacmanD.png"
+    left  <- loadJuicyPNG "pacmanL.png"
+    right <- loadJuicyPNG "pacmanR.png"
+
+    case (up, down, left, right) of
+        (Just u, Just d, Just l, Just r) ->
+            return (Just (Pict u d l r))
+        _ -> return Nothing
