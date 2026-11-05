@@ -7,6 +7,7 @@ import Model (Player, Dir, Grid, Cell)
 import Data.List (minimumBy)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
+import Items
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
@@ -15,9 +16,17 @@ step secs gstate = return gstate
   , ghosts =
       map (moveGhost (veld gstate) True (cell updatedPlayer) (movingP updatedPlayer) secs)
         (ghosts gstate)
+  , veld = veld (eatenItem gstate (whichItem gstate))
   }
   where
     updatedPlayer = updatePlayer (veld gstate) secs (player gstate)
+
+-- | Determine whether there's an item on the location
+whichItem :: GameState -> Maybe ItemType
+whichItem gstate | veld gstate !! y !! x == "o"    = Just SmallDot
+                 | veld gstate !! y !! x == "0"    = Just BigDot
+                 | otherwise                       = Nothing
+                     where (x,y) = cell (player gstate)
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
@@ -73,8 +82,7 @@ opposite DLeft  = DRight
 opposite DRight = DLeft
 opposite DNone  = DNone
 
--- Moves you one cell in the direction
--- toevegoed: naar de andere kant van het scherm kunnen teleporteren
+-- Moves you one cell in the direction, and from one side of the screen to the other if there's space
 stepCell :: Grid -> Dir -> Cell -> Cell
 stepCell grid d (c, r) | c == 0                       = (length (grid !! r) - 1 + dx, r + dy)
                        | c == length (grid !! r) -1   = (dx, r + dy)
@@ -166,7 +174,6 @@ directions = [DUp, DLeft, DDown, DRight]
 -- Basic pythagorean formula
 distTo :: Cell -> Cell -> Int
 distTo (a, b) (c, d) = (a - c) ^ 2 + (b - d) ^ 2
-
 
 -- Iplementation of BFS on the grid.
 reachable :: Grid -> Cell -> [(Cell, Dir)]
