@@ -19,15 +19,22 @@ getPacmanPicture pics p = case p of
     PacL -> pacmanLeft pics
     PacR -> pacmanRight pics
 
-view :: StdGen -> Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> IO Picture
-view gen pics g1 g2 g3 g4 k gstate = do
-  return(viewPure pics g1 g2 g3 g4 k gstate gen)
+view :: StdGen -> Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> IO Picture
+view gen pics g1 g2 g3 g4 k h gstate = do
+  return(viewPure pics g1 g2 g3 g4 k h gstate gen)
 
-viewPure :: Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> StdGen -> Picture
-viewPure pics geest1 geest2 geest3 geest4 kers gstate gen = pictures
-        [ fst (tekenVeld kers (veld gstate) 280 gen),
+-- levens, score en highscore toegevoegd
+viewPure :: Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> StdGen -> Picture
+viewPure pics geest1 geest2 geest3 geest4 kers hart gstate gen = pictures
+        ([ fst (tekenVeld kers (veld gstate) 245 gen),
           drawPlayer pics (player gstate),
-          pictures (map drawGhost (ghosts gstate))]
+          pictures (map drawGhost (ghosts gstate)),
+          translate (-285) 292 (scale 0.2 0.2 (color white(Text "Lives:"))),
+          translate (90) 292 (scale 0.2 0.2 (color white(Text "Highscore:"))),
+          translate (220) 292 (scale 0.2 0.2 (color white(Text (show (highscore gstate))))),
+          translate (0) 292 (scale 0.2 0.2 (color white(Text (show (score gstate)))))] 
+          ++ 
+          (drawLives (lives gstate) hart (-200)))
   where
     drawGhost ghost = translate x y (scale 0.06 0.06 (ghostImage ghost))
       where
@@ -46,8 +53,12 @@ drawPlayer pics p = translate x y (scale 0.06 0.06 image)
     (x, y) = gridToScreen col row
     image = getPacmanPicture pics (pict p)
 
+drawLives :: Float -> Picture -> Float -> [Picture]
+drawLives 0 _ _ = []
+drawLives n hart x = ((translate x 300 (scale 0.08 0.08 hart)): drawLives (n-1) hart (x+30))
+
 gridToScreen :: Float -> Float -> (Float, Float)
-gridToScreen col row = (-270 + col * 20, 280 - row * 20)
+gridToScreen col row = (-270 + col * 20, 245 - row * 20)
 
 tekenVeld :: Picture -> [[String]] -> Float -> StdGen -> (Picture, StdGen)
 tekenVeld _ [] y g = (Blank,g)
@@ -74,3 +85,4 @@ randomFruit :: Picture -> StdGen -> (Picture, StdGen)
 randomFruit fruit g | r <= 97   = (color yellow(circleSolid 2), g')
                      | otherwise = (scale 0.06 0.06 fruit, g')
                         where (r,g') = randomR(1 :: Int, 100 :: Int) g
+

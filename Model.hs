@@ -43,12 +43,14 @@ newGhost n c = BaseGhost
   { ghostCell = c, nextCell = c, moving = DNone
   , progress = 0, ghostSpeed = 5, ghostName = n }
 
-
+-- score, highscore en lives toegevoegd
 data GameState = GameState
   { veld :: [[String]]
   , player :: Player
   , ghosts :: [BaseGhost]
   , score :: Int
+  , highscore :: Int
+  , lives :: Float
   }
 
 initialState :: [[String]] -> GameState
@@ -62,4 +64,6 @@ initialState grid = GameState
       , newGhost Clyde (16, 11)
       ]
   , score = 0
+  , highscore = 0
+  , lives = 3
   }
