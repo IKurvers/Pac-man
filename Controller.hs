@@ -21,14 +21,7 @@ data ItemType = SmallDot | BigDot | Fruit | Cherry | Strawberry | Orange | Apple
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step _ gstate | paused gstate = return gstate
-step secs gstate = return gstate
-  { player = updatedPlayer
-  , ghosts =
-      map (moveGhost (veld gstate) (not ( any isHunting (ghosts gstate))) (cell updatedPlayer) (movingP updatedPlayer) secs)
-        (updateHunting secs (ghosts updatedState))
-  , veld = veld (eatenItem gstate (whichItem gstate))
-  , score = score (eatenItem gstate (whichItem gstate))
-  }
+step secs gstate = return finalState
   where
     updatedPlayer =
       updatePlayer (veld gstate) secs (player gstate)
@@ -343,12 +336,15 @@ handleCollisions :: GameState -> GameState
 handleCollisions gstate = foldl pacGhost gstate [0 .. length (ghosts gstate) - 1]
 
 pacGhost :: GameState -> Int -> GameState
-pacGhost gstate i | ghostCell ghost /= cell (player gstate)   = gstate
+pacGhost gstate i | not touching                              = gstate
                   | ghostMode ghost == Eyes                   = gstate
                   | hunting ghost > 0                         = gstate { ghosts = replaceAt2 (ghost { ghostMode = Eyes }) i (ghosts gstate), score = score gstate + 200}
-                  | otherwise                                 = gstate { lives = max 0 (lives gstate - 1), player = initialPlayer (13, 21)}
+                  | otherwise                                 = gstate { lives = max 0 (lives gstate - 1), player = initialPlayer (13, 21), ghosts = map (\g -> g { ghostCell = ghostHome g, nextCell = ghostHome g, moving = DNone, progress = 0, hunting = 0, ghostMode = Normal }) (ghosts gstate) }
                     where
                       ghost = ghosts gstate !! i
+                      (px, py) = smoothCell (player gstate)
+                      (gx, gy) = ghostPosition ghost
+                      touching = (px - gx) ^ 2 + (py - gy) ^ 2 < 0.5
 
 -- Function to save the current game state to a file. (Press 't' to save)
 save :: GameState -> IO ()
@@ -376,7 +372,9 @@ save gstate = do
                   , show (progress g)
                   , show (ghostSpeed g)
                   , show (ghostName g)
-                  , show (hunting g)]
+                  , show (hunting g)
+                  , show (ghostMode g)
+                  ]
 
 -- Resets the game state to the initial state from the file. (Press 'r' to reset)
 reset :: GameState -> IO GameState
