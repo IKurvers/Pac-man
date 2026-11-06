@@ -95,7 +95,7 @@ hoekenStartRO ((x1:x2:xs):ys) x y = hoekenStartRO ((x2:xs):ys) (x+1) y
 startPos :: Grid -> GhostName -> Cell
 startPos veld naam = 
   case naam of
-    Blinky -> ((lox+1),(loy-1))
+    Blinky -> ((lox+1),(loy-1)) 
     Pinky -> ((lbx+2),(lby+1))
     Inky -> ((rox-2),(roy-1))
     Clyde -> ((rbx-1),(rby+1))

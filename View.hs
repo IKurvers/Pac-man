@@ -37,6 +37,7 @@ viewPure pics geest1 geest2 geest3 geest4 kers hart oogjes dood gstate gen = pic
             [translate (-65) (-30) (scale 0.3 0.3 (color white (Text "Paused")))]
           else []]
     )
+
   where
     drawGhost ghost =
       translate x y (scale 0.06 0.06 (ghostImage ghost))
