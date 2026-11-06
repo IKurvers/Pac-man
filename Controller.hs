@@ -47,7 +47,7 @@ whichItem gstate | veld gstate !! y !! x == "o"    = Just SmallDot
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
-input e gstate = return (handleStateInput e gstate)
+input e gstate = handleStateInput e gstate
 
 
 -- Constant speed
@@ -55,13 +55,31 @@ speed :: Float
 speed = 6
 
 
-handleStateInput :: Event -> GameState -> GameState
-handleStateInput (EventKey (SpecialKey KeySpace) Down _ _) gstate =
-  gstate { paused = not (paused gstate) }
+handleStateInput :: Event -> GameState -> IO GameState
+handleStateInput (EventKey (SpecialKey k) Down _ _) gstate = case k of
+  KeySpace -> return gstate { paused = not (paused gstate) }
+  _ -> return gstate
+handleStateInput (EventKey (Char 't') Down _ _) gstate = 
+  do 
+    save gstate
+    return gstate
+handleStateInput (EventKey (Char 'r') Down _ _) gstate = 
+  do
+    newState <- reset
+    return newState
+handleStateInput e gstate = 
+  if paused gstate
+    then return gstate
+    else return gstate { player = handlePlayerInput e (player gstate) }
+
+
+
+
 handleStateInput e gstate = if paused gstate
-  then gstate
-  else
-  gstate { player = handlePlayerInput e (player gstate) }
+  then return gstate
+  else do
+    let updatedPlayer = handlePlayerInput e (player gstate)
+    return gstate { player = updatedPlayer }
 
 
 
@@ -301,3 +319,40 @@ replaceAt2 :: String -> Int -> [String] -> [String]
 replaceAt2 _ _ [] = []
 replaceAt2 s 0 (x:xs) = (s:xs)
 replaceAt2 s i (x:xs) = (x: replaceAt2 s (i-1) xs)
+
+
+
+save :: GameState -> IO ()
+save gstate = do
+    writeFile "SaveState.txt" gridString
+
+    where
+        grid = veld gstate
+        gridString = unlines (map unwords grid)
+                    ++ unlines [show (score gstate)
+                    , show (highscore gstate)
+                    , show (lives gstate)
+                    , show (paused gstate)
+                    , show (cell (player gstate))
+                    , show (next (player gstate))
+                    , show (movingP (player gstate))
+                    , show (wanted (player gstate))
+                    , show (progressP (player gstate))
+                    , show (pict (player gstate))] 
+                    ++ unlines (map showGhost (ghosts gstate))
+        showGhost g = unwords [
+                    show (ghostCell g)
+                  , show (nextCell g)
+                  , show (moving g)
+                  , show (progress g)
+                  , show (ghostSpeed g)
+                  , show (ghostName g)
+                  , show (hunting g)]
+
+
+reset :: IO GameState
+reset = do
+    textinput <- readFile "veld_pac-man.txt"
+    let beginstaat = initialState (lines textinput)
+    save beginstaat
+    return beginstaat
