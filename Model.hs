@@ -1,12 +1,15 @@
 module Model where
 
+import Data.List (mapAccumL)
+import System.Random
+
 type Grid = [[String]]
 type Cell = (Int, Int)
 
 data Dir = DUp | DDown | DLeft | DRight | DNone
   deriving (Show, Eq, Read)
 
-data PacPict = PacU | PacD | PacL | PacR
+data PacPict = PacU | PacD | PacL | PacR | PacUh | PacDh | PacLh | PacRh | Pacheel
   deriving (Show, Eq, Read)
 
 data GhostName = Blinky | Pinky | Inky | Clyde
@@ -18,7 +21,7 @@ data GhostMode = Normal | Eyes
 data Player = Player
   {
   cell     :: Cell,
-  next     :: Cell,
+  nextP     :: Cell,
   movingP   :: Dir,
   wanted   :: Dir,
   progressP :: Float,
@@ -28,7 +31,7 @@ data Player = Player
 -- Places the player at the start of the game
 initialPlayer :: Cell -> Player
 initialPlayer c = Player
-  { cell = c, next = c, movingP = DNone, wanted = DNone, progressP = 0, pict = PacR }
+  { cell = c, nextP = c, movingP = DNone, wanted = DNone, progressP = 0, pict = PacR }
 
 data BaseGhost = BaseGhost
   {
@@ -112,7 +115,7 @@ readPlayer :: [String] -> Player
 readPlayer [cLine, nLine, movLine, wanLine, progLine, picLine] =
     Player {
         cell      = read cLine,
-        next      = read nLine,
+        nextP      = read nLine,
         movingP   = read movLine,
         wanted    = read wanLine,
         progressP = read progLine,
@@ -128,3 +131,33 @@ startPos veld naam =
     Inky -> ((rox-2),(roy-1))
     Clyde -> ((rbx-1),(rby+1))
   where ((lbx,lby),(rbx,rby),(lox,loy),(rox,roy)) = (hoekenStartLB veld 0 0,hoekenStartRB veld 0 0,hoekenStartLO veld 0 0,hoekenStartRO veld 0 0)
+
+
+
+fruitOrNot :: StdGen -> (String, StdGen)
+fruitOrNot g  | r <= 97   = ("o", g')
+              | otherwise = randomFruit g'
+                where (r,g') = randomR(1 :: Int, 100 :: Int) g
+
+randomFruit :: StdGen -> (String, StdGen)
+randomFruit g | r <= 20  = ("c", g')
+              | r <= 40  = ("s", g')
+              | r <= 60  = ("a", g')
+              | r <= 80  = ("R", g')
+              | otherwise = ("m", g')
+                where (r,g') = randomR(1 :: Int, 100 :: Int) g
+
+
+randomizeGrid :: StdGen -> Grid -> (Grid, StdGen)
+randomizeGrid g grid =
+    let (newGen, newGrid) = mapAccumL randomizeRow g grid
+    in (newGrid, newGen)
+  where
+    randomizeRow gen row =
+        mapAccumL randomizeCell gen row
+
+    randomizeCell gen "o" =
+        let (result, newGen) = fruitOrNot gen
+        in (newGen, result)
+
+    randomizeCell gen other = (gen, other)
