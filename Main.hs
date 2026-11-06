@@ -12,9 +12,11 @@ main :: IO ()
 main = do
     textinput <- readFile "SaveState.txt"
     gen <- getStdGen
-    let beginveld = map words (lines textinput)
+    let saveLines = lines textinput
+    let beginveld = map words (take 29 saveLines)
     let (randomVeld, gen') = randomizeGrid gen beginveld
-    let beginstaat = initialState (lines textinput)
+    let randomSaveLines = map unwords randomVeld ++ drop 29 saveLines
+    let beginstaat = initialState randomSaveLines
     setStdGen gen'
     pics <- loadPictures
 
