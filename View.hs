@@ -73,7 +73,19 @@ drawPlayer pics p = translate x y (scale 0.06 0.06 image)
   where
     (col, row) = smoothCell p
     (x, y) = gridToScreen col row
-    image = getPacmanPicture pics (pict p)
+    mouthOpen = movingP p == DNone ||progressP p < 0.5
+    frame = if mouthOpen then pict p else halfOf (pict p)
+    image = getPacmanPicture pics frame
+
+halfOf :: PacPict -> PacPict
+halfOf PacU = PacUh
+halfOf PacD = PacDh
+halfOf PacL = PacLh
+halfOf PacR = PacRh
+halfOf x    = x
+
+
+
 
 drawLives :: Float -> Picture -> Float -> [Picture]
 drawLives 0 _ _ = []
