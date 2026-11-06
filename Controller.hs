@@ -20,7 +20,7 @@ data ItemType = SmallDot | BigDot | Fruit | Cherry | Strawberry | Orange | Apple
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
-step _ gstate | paused gstate = return gstate
+step _ gstate | paused gstate || died gstate = return gstate
 step secs gstate = return finalState
   where
     updatedPlayer =
@@ -79,9 +79,11 @@ handleStateInput (EventKey (Char 'r') Down _ _) gstate =
     newState <- reset gstate
     return newState
 
--- Check if the game is paused, if it is, don't update the player, otherwise update the player based on input
+
+
+-- Check if the game is paused or player has died, if it is, don't update the player, otherwise update the player based on input
 handleStateInput e gstate = 
-  if paused gstate
+  if paused gstate || died gstate
     then return gstate
     else return gstate { player = handlePlayerInput e (player gstate) }
 
@@ -339,6 +341,7 @@ pacGhost :: GameState -> Int -> GameState
 pacGhost gstate i | not touching                              = gstate
                   | ghostMode ghost == Eyes                   = gstate
                   | hunting ghost > 0                         = gstate { ghosts = replaceAt2 (ghost { ghostMode = Eyes }) i (ghosts gstate), score = score gstate + 200}
+                  | lives gstate <= 1                         = gstate { lives = 0, player = initialPlayer (13, 21), ghosts = map (\g -> g { ghostCell = ghostHome g, nextCell = ghostHome g, moving = DNone, progress = 0, hunting = 0, ghostMode = Normal }) (ghosts gstate), died = True }
                   | otherwise                                 = gstate { lives = max 0 (lives gstate - 1), player = initialPlayer (13, 21), ghosts = map (\g -> g { ghostCell = ghostHome g, nextCell = ghostHome g, moving = DNone, progress = 0, hunting = 0, ghostMode = Normal }) (ghosts gstate) }
                     where
                       ghost = ghosts gstate !! i
@@ -365,6 +368,7 @@ save gstate = do
                     , show (progressP (player gstate))
                     , show (pict (player gstate))] 
                     ++ unlines (map showGhost (ghosts gstate))
+                    ++ unlines [show (died gstate)]
         showGhost g = unwords [
                     show (ghostCell g)
                   , show (nextCell g)

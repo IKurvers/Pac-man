@@ -57,6 +57,7 @@ data GameState = GameState
   , highscore :: Int
   , lives :: Float
   , paused :: Bool
+  , died :: Bool
   }
 
 -- | Initializes the game state from a list of strings read from a file
@@ -69,6 +70,7 @@ initialState allLines = GameState
   , paused    = read (allLines !! 32)
   , player    = readPlayer (take 6 (drop 33 allLines))
   , ghosts    = map (readGhost . words) (take 4 (drop 39 allLines))
+  , died      = read (allLines !! 43)
   }
 
 
