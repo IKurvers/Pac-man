@@ -31,7 +31,6 @@ step secs gstate = return gstate
         (updateHunting secs (ghosts updatedState))
   , veld = veld (eatenItem gstate (whichItem gstate))
   , score = score (eatenItem gstate (whichItem gstate))
-  , highscore = max (highscore gstate) (score (eatenItem gstate (whichItem gstate)))
   }
   where
     updatedPlayer = updatePlayer (veld gstate) secs (player gstate)
@@ -65,15 +64,14 @@ handleStateInput (EventKey (Char 't') Down _ _) gstate =
     return gstate
 handleStateInput (EventKey (Char 'r') Down _ _) gstate = 
   do
-    newState <- reset
+    newState <- reset gstate
     return newState
+
+-- Check if the game is paused, if it is, don't update the player, otherwise update the player based on input
 handleStateInput e gstate = 
   if paused gstate
     then return gstate
     else return gstate { player = handlePlayerInput e (player gstate) }
-
-
-
 
 handleStateInput e gstate = if paused gstate
   then return gstate
@@ -93,7 +91,7 @@ handlePlayerInput (EventKey (Char k) Down _ _) p = case k of
   'W' -> p { wanted = DUp, pict = PacU }
   'S' -> p { wanted = DDown, pict = PacD }
   'A' -> p { wanted = DLeft, pict = PacL }
-  'D' -> p { wanted = DRight, pict = PacR }
+  'D' -> p { wanted = DRight, pict = PacR } 
   _   -> p
 
 handlePlayerInput (EventKey (SpecialKey k) Down _ _) p = case k of
@@ -351,9 +349,10 @@ save gstate = do
                   , show (hunting g)]
 
 -- Resets the game state to the initial state from the file. (Press 'r' to reset)
-reset :: IO GameState
-reset = do
+reset :: GameState -> IO GameState
+reset gstate= do
     textinput <- readFile "veld_pac-man.txt"
-    let beginstaat = initialState (lines textinput)
-    save beginstaat
-    return beginstaat
+    let beginstaat = initialState (lines textinput) 
+    let maxstaat = beginstaat { highscore = maximum [highscore gstate, score gstate, highscore beginstaat] }
+    save maxstaat
+    return maxstaat
