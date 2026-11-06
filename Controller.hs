@@ -31,7 +31,6 @@ step secs gstate = return gstate
         (updateHunting secs (ghosts updatedState))
   , veld = veld (eatenItem gstate (whichItem gstate))
   , score = score (eatenItem gstate (whichItem gstate))
-  , highscore = max (highscore gstate) (score (eatenItem gstate (whichItem gstate)))
   }
   where
     updatedPlayer = updatePlayer (veld gstate) secs (player gstate)
@@ -47,7 +46,7 @@ whichItem gstate | veld gstate !! y !! x == "o"    = Just SmallDot
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
-input e gstate = return (handleStateInput e gstate)
+input e gstate = handleStateInput e gstate
 
 
 -- Constant speed
@@ -55,13 +54,30 @@ speed :: Float
 speed = 6
 
 
-handleStateInput :: Event -> GameState -> GameState
-handleStateInput (EventKey (SpecialKey KeySpace) Down _ _) gstate =
-  gstate { paused = not (paused gstate) }
+handleStateInput :: Event -> GameState -> IO GameState
+handleStateInput (EventKey (SpecialKey k) Down _ _) gstate = case k of
+  KeySpace -> return gstate { paused = not (paused gstate) }
+  _ -> return gstate
+handleStateInput (EventKey (Char 't') Down _ _) gstate = 
+  do 
+    save gstate
+    return gstate
+handleStateInput (EventKey (Char 'r') Down _ _) gstate = 
+  do
+    newState <- reset gstate
+    return newState
+
+-- Check if the game is paused, if it is, don't update the player, otherwise update the player based on input
+handleStateInput e gstate = 
+  if paused gstate
+    then return gstate
+    else return gstate { player = handlePlayerInput e (player gstate) }
+
 handleStateInput e gstate = if paused gstate
-  then gstate
-  else
-  gstate { player = handlePlayerInput e (player gstate) }
+  then return gstate
+  else do
+    let updatedPlayer = handlePlayerInput e (player gstate)
+    return gstate { player = updatedPlayer }
 
 
 
@@ -75,7 +91,7 @@ handlePlayerInput (EventKey (Char k) Down _ _) p = case k of
   'W' -> p { wanted = DUp, pict = PacU }
   'S' -> p { wanted = DDown, pict = PacD }
   'A' -> p { wanted = DLeft, pict = PacL }
-  'D' -> p { wanted = DRight, pict = PacR }
+  'D' -> p { wanted = DRight, pict = PacR } 
   _   -> p
 
 handlePlayerInput (EventKey (SpecialKey k) Down _ _) p = case k of
@@ -122,12 +138,12 @@ stepCell grid d (c, r) | c == 0                       = (length (grid !! r) - 1 
 
 -- Wall Checker (return True if wall). Second argument checks for the ghost tunnel, which is not a wall for ghosts.
 isWall :: Grid -> Bool -> Cell -> Bool
---Base case for Player.
+--Case for Player.
 isWall grid True (c, r)
   | r < 0 || r >= length grid = True
   | c < 0 || c >= length (grid !! r) = True
   | otherwise = grid !! r !! c == "w"  || grid !! r !! c == "r" || grid !! r !! c == "l" || grid !! r !! c == "-" || grid !! r !! c == "_" ||  grid !! r !! c == "d"
---Base case for Ghosts, which can go through the tunnel.
+--Case for Ghosts, which can go through the tunnel.
 isWall grid False (c, r)
   | r < 0 || r >= length grid = True
   | c < 0 || c >= length (grid !! r) = True
@@ -257,6 +273,7 @@ moveGhost :: Grid -> Bool -> Cell -> Dir -> Float -> BaseGhost -> BaseGhost
 moveGhost grid isHunting playerCell playerDir dt g =
   updateGhost grid dt (ghostTarget grid isHunting playerCell playerDir g) g
 
+--3 Functions for the ghost hunting state. One to update the hunting time, one to set it and one to check if the ghost is hunting.
 updateHunting :: Float -> [BaseGhost] -> [BaseGhost]
 updateHunting dt = map (\g -> g { hunting = max 0 (hunting g - dt) })
 
@@ -301,3 +318,41 @@ replaceAt2 :: String -> Int -> [String] -> [String]
 replaceAt2 _ _ [] = []
 replaceAt2 s 0 (x:xs) = (s:xs)
 replaceAt2 s i (x:xs) = (x: replaceAt2 s (i-1) xs)
+
+
+-- Function to save the current game state to a file. (Press 't' to save)
+save :: GameState -> IO ()
+save gstate = do
+    writeFile "SaveState.txt" gridString
+
+    where
+        grid = veld gstate
+        gridString = unlines (map unwords grid)
+                    ++ unlines [show (score gstate)
+                    , show (highscore gstate)
+                    , show (lives gstate)
+                    , show (paused gstate)
+                    , show (cell (player gstate))
+                    , show (next (player gstate))
+                    , show (movingP (player gstate))
+                    , show (wanted (player gstate))
+                    , show (progressP (player gstate))
+                    , show (pict (player gstate))] 
+                    ++ unlines (map showGhost (ghosts gstate))
+        showGhost g = unwords [
+                    show (ghostCell g)
+                  , show (nextCell g)
+                  , show (moving g)
+                  , show (progress g)
+                  , show (ghostSpeed g)
+                  , show (ghostName g)
+                  , show (hunting g)]
+
+-- Resets the game state to the initial state from the file. (Press 'r' to reset)
+reset :: GameState -> IO GameState
+reset gstate= do
+    textinput <- readFile "veld_pac-man.txt"
+    let beginstaat = initialState (lines textinput) 
+    let maxstaat = beginstaat { highscore = maximum [highscore gstate, score gstate, highscore beginstaat] }
+    save maxstaat
+    return maxstaat

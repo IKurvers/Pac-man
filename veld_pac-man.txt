@@ -19,7 +19,7 @@ w w w w w w o w w o w w w w w w w w o w w o w w w w w w
 w o o o o o o o o o o o o w w o o o o o o o o o o o o w
 w o w w w w o w w w w w o w w o w w w w w o w w w w o w
 w 0 w w w w o w w w w w o w w o w w w w w o w w w w o w
-w o o o w w o o o o o o o o o o 0 o o o o o w w o o o w
+w o o o w w o o o o o o o n o o 0 o o o o o w w o o o w
 w w w o w w o w w o w w w w w w w w o w w o w w 0 w w w 
 w w w o w w o w w o w w w w w w w w o w w o w w o w w w 
 w o o o o o o w w o o o o w w o o o o w w o o o o o o w
@@ -27,3 +27,17 @@ w o w w w w w w w w w w o w w o w w w w w w w w w w o w
 w o w w w w w w w w w w o w w o w w w w w w w w w w 0 w
 w o o o o o o o 0 o o o o o o o o o o o o o o o o o o w
 w w w w w w w w w w w w w w w w w w w w w w w w w w w w
+0
+0
+3.0
+False
+(13,21)
+(13,21)
+DNone
+DNone
+0.0
+PacR
+(11,13) (12,13) DRight 0.75 5.0 Blinky 0.0
+(12,13) (11,13) DLeft 0.75 5.0 Pinky 0.0
+(15,13) (16,13) DRight 0.75 5.0 Inky 0.0
+(16,13) (15,13) DLeft 0.75 5.0 Clyde 0.0

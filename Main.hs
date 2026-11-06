@@ -10,9 +10,9 @@ import System.Random
 
 main :: IO ()
 main = do
-    tekstinput <- readFile "veld_pac-man.txt"
-    let beginveld = map words (lines tekstinput)
-    let beginstaat = initialState beginveld
+    textinput <- readFile "SaveState.txt"
+    let beginveld = map words (lines textinput)
+    let beginstaat = initialState (lines textinput)
 
     gen <- getStdGen
 
