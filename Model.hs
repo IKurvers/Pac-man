@@ -6,7 +6,7 @@ type Cell = (Int, Int)
 data Dir = DUp | DDown | DLeft | DRight | DNone
   deriving (Show, Eq, Read)
 
-data PacPict = PacU | PacD | PacL | PacR
+data PacPict = PacU | PacD | PacL | PacR | PacUh | PacDh | PacLh | PacRh | Pacheel
   deriving (Show, Eq, Read)
 
 data GhostName = Blinky | Pinky | Inky | Clyde

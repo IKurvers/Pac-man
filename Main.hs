@@ -46,8 +46,14 @@ loadPictures = do
     down  <- loadJuicyPNG "pacmanD.png"
     left  <- loadJuicyPNG "pacmanL.png"
     right <- loadJuicyPNG "pacmanR.png"
+    upHalf    <- loadJuicyPNG "pacmanUhalf.png"
+    downHalf  <- loadJuicyPNG "pacmanDhalf.png"
+    leftHalf  <- loadJuicyPNG "pacmanLhalf.png"
+    rightHalf <- loadJuicyPNG "pacmanRhalf.png"
+    heel <- loadJuicyPNG "pacmanheel.png"
 
-    case (up, down, left, right) of
-        (Just u, Just d, Just l, Just r) ->
-            return (Just (Pict u d l r))
+
+    case (up, down, left, right, upHalf, downHalf, leftHalf, rightHalf, heel) of
+        (Just u, Just d, Just l, Just r, Just uh, Just dh, Just lh, Just rh, Just h) ->
+            return (Just (Pict u d l r uh dh lh rh h))
         _ -> return Nothing

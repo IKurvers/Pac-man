@@ -10,6 +10,11 @@ data Pict = Pict
   , pacmanDown  :: Picture
   , pacmanLeft  :: Picture
   , pacmanRight :: Picture
+  , pacmanUphalf    :: Picture
+  , pacmanDownhalf  :: Picture
+  , pacmanLefthalf  :: Picture
+  , pacmanRighthalf :: Picture
+  , pacmanHeel  :: Picture
   }
 
 getPacmanPicture :: Pict -> PacPict -> Picture
@@ -18,6 +23,11 @@ getPacmanPicture pics p = case p of
     PacD -> pacmanDown pics
     PacL -> pacmanLeft pics
     PacR -> pacmanRight pics
+    PacUh -> pacmanUphalf pics
+    PacDh -> pacmanDownhalf pics
+    PacLh -> pacmanLefthalf pics
+    PacRh -> pacmanRighthalf pics
+    Pacheel -> pacmanHeel pics
 
 view :: StdGen -> Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> IO Picture
 view gen pics g1 g2 g3 g4 k h o dood gstate = return (viewPure pics g1 g2 g3 g4 k h o dood gstate gen)
