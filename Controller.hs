@@ -54,6 +54,10 @@ whichItem :: GameState -> Maybe ItemType
 whichItem gstate | veld gstate !! y !! x == "o"    = Just SmallDot
                  | veld gstate !! y !! x == "0"    = Just BigDot
                  | veld gstate !! y !! x == "c"    = Just Cherry
+                 | veld gstate !! y !! x == "c"    = Just Strawberry
+                 | veld gstate !! y !! x == "a"    = Just Apple
+                 | veld gstate !! y !! x == "R"    = Just Orange
+                 | veld gstate !! y !! x == "m"    = Just Melon
                  | otherwise                       = Nothing
                      where (x,y) = cell (player gstate)
 
