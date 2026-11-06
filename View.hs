@@ -23,20 +23,28 @@ view :: StdGen -> Pict -> Picture -> Picture -> Picture -> Picture -> Picture ->
 view gen pics g1 g2 g3 g4 k h o dood gstate = return (viewPure pics g1 g2 g3 g4 k h o dood gstate gen)
 
 viewPure :: Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> StdGen -> Picture
-viewPure pics geest1 geest2 geest3 geest4 kers hart oogjes dood gstate gen = pictures
-    ( [ fst (tekenVeld kers (veld gstate) 245 gen)
+viewPure pics geest1 geest2 geest3 geest4 kers hart oogjes dood gstate gen = pictures 
+      ([ fst (tekenVeld kers (veld gstate) 245 gen)
       , drawPlayer pics (player gstate)
       , pictures (map drawGhost (ghosts gstate))
       , translate (-285) 292 (scale 0.2 0.2 (color white (Text "Lives:")))
       , translate (90) 292 (scale 0.2 0.2 (color white (Text "Highscore:")))
       , translate (220) 292 (scale 0.2 0.2 (color white (Text (show (highscore gstate)))))
       , translate (0) 292 (scale 0.2 0.2 (color white (Text (show (score gstate)))))
+      
       ]
+
       ++ concat [drawLives (lives gstate) hart (-200)]
-      ++ concat [if paused gstate then
+
+      ++ concat [if died gstate then
+            [translate (-200) (0) (scale 0.3 0.3 (color white (Text "Game Over,"))),
+            translate (-200) (-50) (scale 0.3 0.3 (color white (Text "Press (r) to restart")))]
+          else []]
+      ++ concat [if paused gstate && not (died gstate) then
             [translate (-65) (-30) (scale 0.3 0.3 (color white (Text "Paused")))]
           else []]
-    )
+      )
+    
 
   where
     drawGhost ghost =
@@ -89,7 +97,7 @@ tekenLine fruit (h:t) x y g       | h=="w"        = (pictures [translate x y (co
                                            (r2,g') =  tekenLine fruit t (x+20) y g''
 
 randomFruit :: Picture -> StdGen -> (Picture, StdGen)
-randomFruit fruit g | r <= 97   = (color yellow(circleSolid 2), g')
+randomFruit fruit g  | r <= 97   = (color yellow(circleSolid 2), g')
                      | otherwise = (scale 0.06 0.06 fruit, g')
                         where (r,g') = randomR(1 :: Int, 100 :: Int) g
 
