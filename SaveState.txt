@@ -19,7 +19,7 @@ w w w w w w o w w o w w w w w w w w o w w o w w w w w w
 w o o o o o o o o o o o o w w o o o o o o o o o o o o w
 w o w w w w o w w w w w o w w o w w w w w o w w w w o w
 w 0 w w w w o w w w w w o w w o w w w w w o w w w w o w
-w o o o w w o o o o o o o n n n n o o o o o w w o o o w
+w o o o w w o o o o o o o n n n n n n n n n w w o o o w
 w w w o w w o w w o w w w w w w w w o w w o w w 0 w w w
 w w w o w w o w w o w w w w w w w w o w w o w w o w w w
 w o o o o o o w w o o o o w w o o o o w w o o o o o o w
@@ -27,18 +27,18 @@ w o w w w w w w w w w w o w w o w w w w w w w w w w o w
 w o w w w w w w w w w w o w w o w w w w w w w w w w 0 w
 w o o o o o o o 0 o o o o o o o o o o o o o o o o o o w
 w w w w w w w w w w w w w w w w w w w w w w w w w w w w
-70
+120
 5030
 3.0
-False
-(17,21)
-(18,21)
-DRight
-DRight
-0.20000029
-PacR
-(9,15) (9,14) DUp 0.25 5.0 Blinky 9.599998 Normal
-(9,14) (9,13) DUp 0.25 5.0 Pinky 9.599998 Normal
-(9,13) (9,14) DDown 0.25 5.0 Inky 9.599998 Normal
-(9,14) (9,15) DDown 0.25 5.0 Clyde 9.599998 Normal
+True
+(15,21)
+(14,21)
+DLeft
+DLeft
+0.6000005
+PacL
+(17,8) (18,8) DRight 0.5 5.0 Blinky 5.0999956 Normal
+(9,7) (9,6) DUp 0.5 5.0 Pinky 5.0999956 Normal
+(21,18) (21,19) DDown 0.5 5.0 Inky 5.0999956 Normal
+(6,18) (6,19) DDown 0.5 5.0 Clyde 5.0999956 Normal
 False
