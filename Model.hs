@@ -37,13 +37,13 @@ data BaseGhost = BaseGhost
   ghostName :: GhostName,
   hunting :: Float
   } deriving (Show, Eq)
-
+  
+-- Places the ghost at the start of the game
 newGhost :: GhostName -> Cell -> BaseGhost
 newGhost n c = BaseGhost
   { ghostCell = c, nextCell = c, moving = DNone
   , progress = 0, ghostSpeed = 5, ghostName = n, hunting = 0 }
 
--- score, highscore en lives toegevoegd
 data GameState = GameState
   { veld :: [[String]]
   , player :: Player
@@ -54,6 +54,7 @@ data GameState = GameState
   , paused :: Bool
   }
 
+-- | Initializes the game state from a list of strings read from a file
 initialState :: [String] -> GameState
 initialState allLines = GameState
   { veld      = map words (take 29 allLines)
@@ -67,7 +68,7 @@ initialState allLines = GameState
 
 
 
-
+-- Helper function to read the ghost information
 readGhost :: [String] -> BaseGhost
 readGhost [cLine, nLine, movLine, progLine, speedLine, nameLine, huntLine] =
     BaseGhost {
@@ -81,6 +82,7 @@ readGhost [cLine, nLine, movLine, progLine, speedLine, nameLine, huntLine] =
     }
 readGhost _ = error "Invalid ghost save data format"
 
+-- Helper function to read the player information
 readPlayer :: [String] -> Player
 readPlayer [cLine, nLine, movLine, wanLine, progLine, picLine] =
     Player {

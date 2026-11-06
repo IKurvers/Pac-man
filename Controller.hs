@@ -140,12 +140,12 @@ stepCell grid d (c, r) | c == 0                       = (length (grid !! r) - 1 
 
 -- Wall Checker (return True if wall). Second argument checks for the ghost tunnel, which is not a wall for ghosts.
 isWall :: Grid -> Bool -> Cell -> Bool
---Base case for Player.
+--Case for Player.
 isWall grid True (c, r)
   | r < 0 || r >= length grid = True
   | c < 0 || c >= length (grid !! r) = True
   | otherwise = grid !! r !! c == "w"  || grid !! r !! c == "r" || grid !! r !! c == "l" || grid !! r !! c == "-" || grid !! r !! c == "_" ||  grid !! r !! c == "d"
---Base case for Ghosts, which can go through the tunnel.
+--Case for Ghosts, which can go through the tunnel.
 isWall grid False (c, r)
   | r < 0 || r >= length grid = True
   | c < 0 || c >= length (grid !! r) = True
@@ -275,6 +275,7 @@ moveGhost :: Grid -> Bool -> Cell -> Dir -> Float -> BaseGhost -> BaseGhost
 moveGhost grid isHunting playerCell playerDir dt g =
   updateGhost grid dt (ghostTarget grid isHunting playerCell playerDir g) g
 
+--3 Functions for the ghost hunting state. One to update the hunting time, one to set it and one to check if the ghost is hunting.
 updateHunting :: Float -> [BaseGhost] -> [BaseGhost]
 updateHunting dt = map (\g -> g { hunting = max 0 (hunting g - dt) })
 
@@ -321,7 +322,7 @@ replaceAt2 s 0 (x:xs) = (s:xs)
 replaceAt2 s i (x:xs) = (x: replaceAt2 s (i-1) xs)
 
 
-
+-- Function to save the current game state to a file. (Press 't' to save)
 save :: GameState -> IO ()
 save gstate = do
     writeFile "SaveState.txt" gridString
@@ -349,7 +350,7 @@ save gstate = do
                   , show (ghostName g)
                   , show (hunting g)]
 
-
+-- Resets the game state to the initial state from the file. (Press 'r' to reset)
 reset :: IO GameState
 reset = do
     textinput <- readFile "veld_pac-man.txt"

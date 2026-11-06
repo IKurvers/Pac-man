@@ -23,7 +23,6 @@ view :: StdGen -> Pict -> Picture -> Picture -> Picture -> Picture -> Picture ->
 view gen pics g1 g2 g3 g4 k h gstate = do
   return(viewPure pics g1 g2 g3 g4 k h gstate gen)
 
--- levens, score en highscore toegevoegd
 viewPure :: Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> StdGen -> Picture
 viewPure pics geest1 geest2 geest3 geest4 kers hart gstate gen = pictures 
         (
