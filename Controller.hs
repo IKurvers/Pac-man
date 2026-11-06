@@ -12,30 +12,41 @@ data Item = Item {
     position :: Position,
     itemType :: ItemType,
     eaten :: Bool
-
 } deriving (Show, Eq)
 
 type Position = (Float, Float)
 
 data ItemType = SmallDot | BigDot | Fruit | Cherry | Strawberry | Orange | Apple | Melon deriving (Show, Eq)
 
-
-
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
 step _ gstate | paused gstate = return gstate
-step secs gstate = return gstate
-  { player = updatedPlayer
-  , ghosts =
-      map (moveGhost (veld gstate) (not ( any isHunting (ghosts gstate))) (cell updatedPlayer) (movingP updatedPlayer) secs)
-        (updateHunting secs (ghosts updatedState))
-  , veld = veld (eatenItem gstate (whichItem gstate))
-  , score = score (eatenItem gstate (whichItem gstate))
-  , highscore = max (highscore gstate) (score (eatenItem gstate (whichItem gstate)))
-  }
+step secs gstate = return finalState
   where
-    updatedPlayer = updatePlayer (veld gstate) secs (player gstate)
-    updatedState = eatenItem gstate (whichItem gstate)
+    updatedPlayer =
+      updatePlayer (veld gstate) secs (player gstate)
+    updatedState =
+      eatenItem gstate (whichItem gstate)
+    updatedGhosts =
+      map
+        (moveGhost
+          (veld updatedState)
+          (not (any isHunting (ghosts updatedState)))
+          (cell updatedPlayer)
+          (movingP updatedPlayer)
+          secs)
+        (updateHunting secs (ghosts updatedState))
+    movedState = updatedState
+      { player = updatedPlayer
+      , ghosts = updatedGhosts
+      }
+    collisionState = handleCollisions movedState
+    finalState = collisionState
+      { highscore = max
+          (highscore gstate)
+          (score collisionState)
+      }
+
 
 -- | Determine whether there's an item on the location
 whichItem :: GameState -> Maybe ItemType
@@ -245,17 +256,19 @@ settleGhost grid target g = case firstStep grid (ghostCell g) target of
 -- Updates the ghost, moving it towards the target or changing direction
 updateGhost :: Grid -> Float -> Cell -> BaseGhost -> BaseGhost
 updateGhost grid dt target g
-  | moving g == DNone = settleGhost grid target g
-  | t >= 1 = settleGhost grid target
-               (g { ghostCell = nextCell g, progress = t - 1 })
-  | otherwise = g { progress = t }
+  | ghostMode g == Eyes && ghostCell g == ghostHome g && nextCell g == ghostHome g 
+                        = g { ghostMode = Normal, hunting = 0, moving = DNone, progress = 0}
+  | moving g == DNone   = settleGhost grid target g
+  | t >= 1              = settleGhost grid target (g { ghostCell = nextCell g, progress = t - 1 })
+  | otherwise           = g { progress = t }
   where
     t = progress g + ghostSpeed g * min dt 0.05
 
--- Moving the ghost towards the target
+-- Moving the ghost towards the target, or back to home iff ghost=eyes
 moveGhost :: Grid -> Bool -> Cell -> Dir -> Float -> BaseGhost -> BaseGhost
-moveGhost grid isHunting playerCell playerDir dt g =
-  updateGhost grid dt (ghostTarget grid isHunting playerCell playerDir g) g
+moveGhost grid isHunting playerCell playerDir dt g
+  | ghostMode g == Eyes         = updateGhost grid dt (ghostHome g) g
+  | otherwise                   = updateGhost grid dt (ghostTarget grid isHunting playerCell playerDir g) g
 
 updateHunting :: Float -> [BaseGhost] -> [BaseGhost]
 updateHunting dt = map (\g -> g { hunting = max 0 (hunting g - dt) })
@@ -265,7 +278,6 @@ setHunting t = map (\g -> g { hunting = t })
 
 isHunting :: BaseGhost -> Bool
 isHunting g = hunting g > 0
-
 
 points :: ItemType -> Int
 points SmallDot = 10
@@ -297,7 +309,18 @@ replaceAt s 0 0 ((x:xs):ys) = ((s:xs):ys)
 replaceAt s i 0 ((x:xs):ys) = ((x: replaceAt2 s (i-1) xs): ys)
 replaceAt s i j ((x:xs):ys) = ((x:xs): replaceAt s i (j-1) ys)
 
-replaceAt2 :: String -> Int -> [String] -> [String]
+replaceAt2 :: a -> Int -> [a] -> [a]
 replaceAt2 _ _ [] = []
 replaceAt2 s 0 (x:xs) = (s:xs)
 replaceAt2 s i (x:xs) = (x: replaceAt2 s (i-1) xs)
+
+handleCollisions :: GameState -> GameState
+handleCollisions gstate = foldl pacGhost gstate [0 .. length (ghosts gstate) - 1]
+
+pacGhost :: GameState -> Int -> GameState
+pacGhost gstate i | ghostCell ghost /= cell (player gstate)   = gstate
+                  | ghostMode ghost == Eyes                   = gstate
+                  | hunting ghost > 0                         = gstate { ghosts = replaceAt2 (ghost { ghostMode = Eyes }) i (ghosts gstate), score = score gstate + 200}
+                  | otherwise                                 = gstate { lives = max 0 (lives gstate - 1), player = initialPlayer (13, 21)}
+                    where
+                      ghost = ghosts gstate !! i

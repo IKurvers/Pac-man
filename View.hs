@@ -19,34 +19,38 @@ getPacmanPicture pics p = case p of
     PacL -> pacmanLeft pics
     PacR -> pacmanRight pics
 
-view :: StdGen -> Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> IO Picture
-view gen pics g1 g2 g3 g4 k h gstate = do
-  return(viewPure pics g1 g2 g3 g4 k h gstate gen)
+view :: StdGen -> Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> IO Picture
+view gen pics g1 g2 g3 g4 k h o dood gstate = return (viewPure pics g1 g2 g3 g4 k h o dood gstate gen)
 
--- levens, score en highscore toegevoegd
-viewPure :: Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> StdGen -> Picture
-viewPure pics geest1 geest2 geest3 geest4 kers hart gstate gen = pictures 
-        (
-          [ fst (tekenVeld kers (veld gstate) 245 gen),
-          drawPlayer pics (player gstate),
-          pictures (map drawGhost (ghosts gstate)),
-          translate (-285) 292 (scale 0.2 0.2 (color white(Text "Lives:"))),
-          translate (90) 292 (scale 0.2 0.2 (color white(Text "Highscore:"))),
-          translate (220) 292 (scale 0.2 0.2 (color white(Text (show (highscore gstate))))),
-          translate (0) 292 (scale 0.2 0.2 (color white(Text (show (score gstate)))))] 
-          ++ concat [drawLives (lives gstate) hart (-200)]
-          ++ concat [if paused gstate then [translate (-65) (-30) (scale 0.3 0.3 (color white(Text "Paused")))] else [] ]
-        )
+viewPure :: Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> StdGen -> Picture
+viewPure pics geest1 geest2 geest3 geest4 kers hart oogjes dood gstate gen = pictures
+    ( [ fst (tekenVeld kers (veld gstate) 245 gen)
+      , drawPlayer pics (player gstate)
+      , pictures (map drawGhost (ghosts gstate))
+      , translate (-285) 292 (scale 0.2 0.2 (color white (Text "Lives:")))
+      , translate (90) 292 (scale 0.2 0.2 (color white (Text "Highscore:")))
+      , translate (220) 292 (scale 0.2 0.2 (color white (Text (show (highscore gstate)))))
+      , translate (0) 292 (scale 0.2 0.2 (color white (Text (show (score gstate)))))
+      ]
+      ++ concat [drawLives (lives gstate) hart (-200)]
+      ++ concat [if paused gstate then
+            [translate (-65) (-30) (scale 0.3 0.3 (color white (Text "Paused")))]
+          else []]
+    )
   where
-    drawGhost ghost = translate x y (scale 0.06 0.06 (ghostImage ghost))
+    drawGhost ghost =
+      translate x y (scale 0.06 0.06 (ghostImage ghost))
       where
         (col, row) = ghostPosition ghost
         (x, y) = gridToScreen col row
-        ghostImage g = case ghostName g of
-          Blinky -> geest1
-          Pinky -> geest2
-          Inky -> geest3
-          Clyde -> geest4
+        ghostImage g
+          | ghostMode g == Eyes   = oogjes
+          | hunting g > 0         = dood
+          | otherwise = case ghostName g of
+              Blinky -> geest1
+              Pinky  -> geest2
+              Inky   -> geest3
+              Clyde  -> geest4
 
 drawPlayer :: Pict -> Player -> Picture
 drawPlayer pics p = translate x y (scale 0.06 0.06 image)

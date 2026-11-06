@@ -12,6 +12,9 @@ data PacPict = PacU | PacD | PacL | PacR
 data GhostName = Blinky | Pinky | Inky | Clyde
   deriving (Show, Eq)
 
+data GhostMode = Normal | Eyes
+  deriving (Show, Eq)
+
 data Player = Player
   {
   cell     :: Cell,
@@ -35,13 +38,15 @@ data BaseGhost = BaseGhost
   progress :: Float,
   ghostSpeed :: Float,
   ghostName :: GhostName,
+  ghostMode :: GhostMode,
+  ghostHome :: Cell,
   hunting :: Float
   } deriving (Show, Eq)
 
 newGhost :: GhostName -> Cell -> BaseGhost
 newGhost n c = BaseGhost
   { ghostCell = c, nextCell = c, moving = DNone
-  , progress = 0, ghostSpeed = 5, ghostName = n, hunting = 0 }
+  , progress = 0, ghostSpeed = 5, ghostName = n, ghostMode = Normal, ghostHome = c, hunting = 0 }
 
 -- score, highscore en lives toegevoegd
 data GameState = GameState
