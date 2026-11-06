@@ -68,9 +68,9 @@ speed = 6
 
 
 handleStateInput :: Event -> GameState -> IO GameState
-handleStateInput (EventKey (SpecialKey k) Down _ _) gstate = case k of
-  KeySpace -> return gstate { paused = not (paused gstate) }
-  _ -> return gstate
+handleStateInput (EventKey (SpecialKey KeySpace) Down _ _) gstate =
+  return gstate { paused = not (paused gstate) }
+  
 handleStateInput (EventKey (Char 't') Down _ _) gstate = 
   do 
     save gstate
@@ -79,7 +79,10 @@ handleStateInput (EventKey (Char 'r') Down _ _) gstate =
   do
     newState <- reset gstate
     return newState
-
+handleStateInput (EventKey (Char 'y') Down _ _) gstate = 
+  do
+    newState <- load
+    return newState
 
 
 -- Check if the game is paused or player has died, if it is, don't update the player, otherwise update the player based on input
@@ -394,3 +397,8 @@ reset gstate = do
     setStdGen gen'
     save maxstaat
     return maxstaat
+
+load ::  IO GameState
+load = do
+  textinput <- readFile "SaveState.txt"
+  return (initialState (lines textinput))
