@@ -13,7 +13,7 @@ data GhostName = Blinky | Pinky | Inky | Clyde
   deriving (Show, Eq)
 
 data GhostMode = Normal | Eyes
-  deriving (Show, Eq)
+  deriving (Show, Eq, Read)
 
 data Player = Player
   {
@@ -57,22 +57,20 @@ data GameState = GameState
   , highscore :: Int
   , lives :: Float
   , paused :: Bool
+  , died :: Bool
   }
 
-initialState :: [[String]] -> GameState
-initialState grid = GameState
-  { veld = grid
-  , player = initialPlayer (13, 21)
-  , ghosts =
-      [ newGhost Blinky (startPos grid Blinky)
-      , newGhost Pinky (startPos grid Pinky)
-      , newGhost Inky (startPos grid Inky)
-      , newGhost Clyde (startPos grid Clyde)
-      ]
-  , score = 0
-  , highscore = 0
-  , lives = 3
-  , paused = False
+-- | Initializes the game state from a list of strings read from a file
+initialState :: [String] -> GameState
+initialState allLines = GameState
+  { veld      = map words (take 29 allLines)
+  , score     = read (allLines !! 29)
+  , highscore = read (allLines !! 30)
+  , lives     = read (allLines !! 31)
+  , paused    = read (allLines !! 32)
+  , player    = readPlayer (take 6 (drop 33 allLines))
+  , ghosts    = map (readGhost . words) (take 4 (drop 39 allLines))
+  , died      = read (allLines !! 43)
   }
 
 hoekenStartLB :: Grid -> Int -> Int -> Cell
@@ -91,6 +89,36 @@ hoekenStartRO :: Grid -> Int -> Int -> Cell
 hoekenStartRO (("_":"r":xs):ys) x y = ((x+1),y)
 hoekenStartRO ([x1]:ys) x y = hoekenStartRO ys 0 (y+1) 
 hoekenStartRO ((x1:x2:xs):ys) x y = hoekenStartRO ((x2:xs):ys) (x+1) y
+
+
+-- Helper function to read the ghost information
+readGhost :: [String] -> BaseGhost
+readGhost [cLine, nLine, movLine, progLine, speedLine, nameLine, huntLine, modeLine] =
+    BaseGhost {
+        ghostCell  = read cLine,
+        nextCell   = read nLine,
+        moving     = read movLine,
+        progress   = read progLine,
+        ghostSpeed = read speedLine,
+        ghostName  = read nameLine,
+        hunting    = read huntLine,
+        ghostMode  = read modeLine,
+        ghostHome  = read cLine
+    }
+readGhost _ = error "Invalid ghost save data format"
+
+-- Helper function to read the player information
+readPlayer :: [String] -> Player
+readPlayer [cLine, nLine, movLine, wanLine, progLine, picLine] =
+    Player {
+        cell      = read cLine,
+        next      = read nLine,
+        movingP   = read movLine,
+        wanted    = read wanLine,
+        progressP = read progLine,
+        pict      = read picLine
+    }
+readPlayer _ = error "Invalid player save data format"
 
 startPos :: Grid -> GhostName -> Cell
 startPos veld naam = 
