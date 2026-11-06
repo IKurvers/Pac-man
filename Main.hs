@@ -11,29 +11,33 @@ import System.Random
 main :: IO ()
 main = do
     textinput <- readFile "SaveState.txt"
-    let beginveld = map words (lines textinput)
-    let beginstaat = initialState (lines textinput)
-
     gen <- getStdGen
-
+    let beginveld = map words (lines textinput)
+    let (randomVeld, gen') = randomizeGrid gen beginveld
+    let beginstaat = initialState (lines textinput)
+    setStdGen gen'
     pics <- loadPictures
 
     geest1 <- loadJuicyPNG "geest1.png"
     geest2 <- loadJuicyPNG "geest2.png"
     geest3 <- loadJuicyPNG "geest3.png"
     geest4 <- loadJuicyPNG "geest4.png"
-    oogjes <- loadJuicyPNG "oogjes.png"
+    eyes <- loadJuicyPNG "oogjes.png"
     doodGeest <- loadJuicyPNG "doodGeest.png"
-    kers <- loadJuicyPNG "cherry.png"
+    cherry <- loadJuicyPNG "cherry.png"
+    strawberry <- loadJuicyPNG "aardbei.png"
+    apple <- loadJuicyPNG "appel.png"
+    orange <- loadJuicyPNG "orange.png"
+    melon <- loadJuicyPNG "melon.png"
     hart <- loadJuicyPNG "hart.png"
 
-    case (pics, geest1, geest2, geest3, geest4, kers, hart, oogjes, doodGeest) of
-        (Just ps, Just g1, Just g2, Just g3, Just g4, Just k, Just h, Just o, Just dood) ->
+    case (pics, geest1, geest2, geest3, geest4, cherry, strawberry, apple, orange, melon, hart, eyes, doodGeest) of
+        (Just ps, Just g1, Just g2, Just g3, Just g4, Just c, Just s, Just a, Just r, Just m, Just h, Just e, Just dood) ->
             playIO (InWindow "Pac-man" (620, 685) (340, 0))
                     black
                     10
                     beginstaat
-                    (view gen ps g1 g2 g3 g4 k h o dood)
+                    (view ps g1 g2 g3 g4 c s a r m h e dood)
                     input
                     step
 

@@ -7,6 +7,7 @@ import Model (Player, Dir, Grid, Cell)
 import Data.List (minimumBy)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
+import System.Random (getStdGen, setStdGen)
 
 data Item = Item {
     position :: Position,
@@ -16,7 +17,7 @@ data Item = Item {
 
 type Position = (Float, Float)
 
-data ItemType = SmallDot | BigDot | Fruit | Cherry | Strawberry | Orange | Apple | Melon deriving (Show, Eq)
+data ItemType = SmallDot | BigDot | Cherry | Strawberry | Orange | Apple | Melon deriving (Show, Eq)
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
@@ -122,7 +123,7 @@ smoothCell p = (fromIntegral c + fromIntegral (nc - c) * t,
                 fromIntegral r + fromIntegral (nr - r) * t)
   where
     (c, r)   = cell p
-    (nc, nr) = next p
+    (nc, nr) = nextP p
     t        = progressP p
 
 -- Direction to vector for math
@@ -167,12 +168,12 @@ isWall grid False (c, r)
 updatePlayer :: Grid -> Float -> Player -> Player
 updatePlayer grid dt p
   | movingP p /= DNone && wanted p == opposite (movingP p) =
-      p { cell      = next p
-        , next      = cell p
+      p { cell      = nextP p
+        , nextP      = cell p
         , movingP   = wanted p
         , progressP = 1 - progressP p }
   | movingP p == DNone = settle grid p
-  | t >= 1 = settle grid (p { cell = next p, progressP = t - 1 })
+  | t >= 1 = settle grid (p { cell = nextP p, progressP = t - 1 })
   | otherwise = p { progressP = t }
   where
     t = progressP p + speed * min dt 0.05
@@ -180,8 +181,8 @@ updatePlayer grid dt p
 -- Main helper function for movement
 settle :: Grid -> Player -> Player
 settle grid p = case pick of
-  DNone -> p { movingP = DNone, next = cell p, progressP = 0 }
-  d     -> p { movingP = d, next = stepCell grid d (cell p) }
+  DNone -> p { movingP = DNone, nextP = cell p, progressP = 0 }
+  d     -> p { movingP = d, nextP = stepCell grid d (cell p) }
   where
     open d = d /= DNone && not (isWall grid True (stepCell grid d (cell p)))
     pick
@@ -362,7 +363,7 @@ save gstate = do
                     , show (lives gstate)
                     , show (paused gstate)
                     , show (cell (player gstate))
-                    , show (next (player gstate))
+                    , show (nextP (player gstate))
                     , show (movingP (player gstate))
                     , show (wanted (player gstate))
                     , show (progressP (player gstate))
@@ -382,9 +383,14 @@ save gstate = do
 
 -- Resets the game state to the initial state from the file. (Press 'r' to reset)
 reset :: GameState -> IO GameState
-reset gstate= do
+reset gstate = do
     textinput <- readFile "veld_pac-man.txt"
-    let beginstaat = initialState (lines textinput) 
-    let maxstaat = beginstaat { highscore = maximum [highscore gstate, score gstate, highscore beginstaat] }
+    gen <- getStdGen
+    let beginveld = map words (lines textinput)
+    let (randomVeld, gen') = randomizeGrid gen beginveld
+    let randomRegels = map unwords randomVeld
+    let beginstaat = initialState randomRegels
+    let maxstaat = beginstaat { highscore = maximum [highscore gstate, score gstate, highscore beginstaat]}
+    setStdGen gen'
     save maxstaat
     return maxstaat

@@ -29,23 +29,20 @@ getPacmanPicture pics p = case p of
     PacRh -> pacmanRighthalf pics
     Pacheel -> pacmanHeel pics
 
-view :: StdGen -> Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> IO Picture
-view gen pics g1 g2 g3 g4 k h o dood gstate = return (viewPure pics g1 g2 g3 g4 k h o dood gstate gen)
+view :: Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> IO Picture
+view pics g1 g2 g3 g4 c s a r m h o dood gstate = return (viewPure pics g1 g2 g3 g4 c s a r m h o dood gstate )
 
-viewPure :: Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> StdGen -> Picture
-viewPure pics geest1 geest2 geest3 geest4 kers hart oogjes dood gstate gen = pictures 
-      ([ fst (tekenVeld kers (veld gstate) 245 gen)
+viewPure :: Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> Picture
+viewPure pics geest1 geest2 geest3 geest4 cherry strawberry apple orange melon hart oogjes dood gstate = pictures 
+      ([ tekenVeld [cherry, strawberry, apple, orange, melon] (veld gstate) 245
       , drawPlayer pics (player gstate)
       , pictures (map drawGhost (ghosts gstate))
       , translate (-285) 292 (scale 0.2 0.2 (color white (Text "Lives:")))
       , translate (90) 292 (scale 0.2 0.2 (color white (Text "Highscore:")))
       , translate (220) 292 (scale 0.2 0.2 (color white (Text (show (highscore gstate)))))
       , translate (0) 292 (scale 0.2 0.2 (color white (Text (show (score gstate)))))
-      
       ]
-
       ++ concat [drawLives (lives gstate) hart (-200)]
-
       ++ concat [if died gstate then
             [translate (-200) (0) (scale 0.3 0.3 (color white (Text "Game Over,"))),
             translate (-200) (-50) (scale 0.3 0.3 (color white (Text "Press (r) to restart")))]
@@ -85,29 +82,28 @@ drawLives n hart x = ((translate x 300 (scale 0.08 0.08 hart)): drawLives (n-1) 
 gridToScreen :: Float -> Float -> (Float, Float)
 gridToScreen col row = (-270 + col * 20, 245 - row * 20)
 
-tekenVeld :: Picture -> [[String]] -> Float -> StdGen -> (Picture, StdGen)
-tekenVeld _ [] y g = (Blank,g)
-tekenVeld fruit (h:t) y g = (pictures [r1, r2],g'')
-                                    where (r1,g') = tekenLine fruit h (-270) y g
-                                          (r2,g'') = tekenVeld fruit t (y-20) g'
+tekenVeld :: [Picture] -> [[String]] -> Float -> Picture
+tekenVeld _ [] _ = Blank
+tekenVeld fruit (h:t) y = pictures[ tekenLine fruit h (-270) y, tekenVeld fruit t (y-20)]
 
-tekenLine :: Picture -> [String] -> Float -> Float -> StdGen -> (Picture,StdGen)
-tekenLine _ [] x y g = (Blank,g)
-tekenLine fruit (h:t) x y g       | h=="w"        = (pictures [translate x y (color blue(rectangleSolid 15 15)), r2],g')
-                                  | h=="o"        = (pictures [translate x y (f), r2],g'')
-                                  | h=="0"        = (pictures [translate x y (color yellow(circleSolid 5)), r2],g')
-                                  | h=="l"        = (pictures [translate x y (color blue(rectangleSolid 5 20)), r2],g')
-                                  | h=="r"        = (pictures [translate x y (color blue(rectangleSolid 5 20)), r2],g')
-                                  | h=="_"        = (pictures [translate x (y-5) (color blue(rectangleSolid 40 5)), r2],g')
-                                  | h=="-"        = (pictures [translate x (y+5) (color blue(rectangleSolid 40 5)), r2],g')
-                                  | h=="n"        = (r2,g')
-                                  | h=="d"        = (pictures [translate (x+5) (y+5) (color magenta(rectangleSolid 20 5)), r2],g')
-                                  | otherwise     = (r2,g')
-                                     where (f,g'') = randomFruit fruit g
-                                           (r2,g') =  tekenLine fruit t (x+20) y g''
+tekenLine :: [Picture] -> [String] -> Float -> Float -> Picture
+tekenLine _ [] _ _ = Blank
+tekenLine fruit (h:t) x y = pictures[ tekenCel fruit h x y, tekenLine fruit t (x+20) y]
 
-randomFruit :: Picture -> StdGen -> (Picture, StdGen)
-randomFruit fruit g  | r <= 97   = (color yellow(circleSolid 2), g')
-                     | otherwise = (scale 0.06 0.06 fruit, g')
-                        where (r,g') = randomR(1 :: Int, 100 :: Int) g
-
+tekenCel :: [Picture] -> String -> Float -> Float -> Picture
+tekenCel fruit h x y  | h == "w" = translate x y (color blue (rectangleSolid 15 15))
+                      | h == "o" = translate x y (color yellow (circleSolid 2))
+                      | h == "0" = translate x y (color yellow (circleSolid 5))
+                      | h == "l" = translate x y (color blue (rectangleSolid 5 20))
+                      | h == "r" = translate x y (color blue (rectangleSolid 5 20))
+                      | h == "_" = translate x (y-5) (color blue (rectangleSolid 40 5))
+                      | h == "-" = translate x (y+5) (color blue (rectangleSolid 40 5))
+                      | h == "n" = Blank
+                      | h == "d" = translate (x+5) (y+5) (color magenta (rectangleSolid 20 5))
+                      | h == "c" = tekenFruit 0
+                      | h == "s" = tekenFruit 1
+                      | h == "a" = tekenFruit 2
+                      | h == "R" = tekenFruit 3
+                      | h == "m" = tekenFruit 4
+                      | otherwise = Blank
+                      where tekenFruit i = translate x y (scale 0.06 0.06 (fruit !! i))
