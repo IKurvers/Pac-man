@@ -2,6 +2,9 @@ The README for our Implementation of Pac-man
 -Isabel Kurvers 9698434
 -Feiko Augustijn 2413531
 
+Running the game:
+Enter: cabal build into the terminal. If you do not recieve an error, continue with cabal run (again in the terminal).
+
 Controls:
 (WASD/Arrows) Controlling the player, in four directions.
 (Space) Pause the game
