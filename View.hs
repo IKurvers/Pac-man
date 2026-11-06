@@ -25,16 +25,18 @@ view gen pics g1 g2 g3 g4 k h gstate = do
 
 -- levens, score en highscore toegevoegd
 viewPure :: Pict -> Picture -> Picture -> Picture -> Picture -> Picture -> Picture -> GameState -> StdGen -> Picture
-viewPure pics geest1 geest2 geest3 geest4 kers hart gstate gen = pictures
-        ([ fst (tekenVeld kers (veld gstate) 245 gen),
+viewPure pics geest1 geest2 geest3 geest4 kers hart gstate gen = pictures 
+        (
+          [ fst (tekenVeld kers (veld gstate) 245 gen),
           drawPlayer pics (player gstate),
           pictures (map drawGhost (ghosts gstate)),
           translate (-285) 292 (scale 0.2 0.2 (color white(Text "Lives:"))),
           translate (90) 292 (scale 0.2 0.2 (color white(Text "Highscore:"))),
           translate (220) 292 (scale 0.2 0.2 (color white(Text (show (highscore gstate))))),
           translate (0) 292 (scale 0.2 0.2 (color white(Text (show (score gstate)))))] 
-          ++ 
-          (drawLives (lives gstate) hart (-200)))
+          ++ concat [drawLives (lives gstate) hart (-200)]
+          ++ concat [if paused gstate then [translate (-65) (-30) (scale 0.3 0.3 (color white(Text "Paused")))] else [] ]
+        )
   where
     drawGhost ghost = translate x y (scale 0.06 0.06 (ghostImage ghost))
       where

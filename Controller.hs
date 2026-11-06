@@ -7,39 +7,67 @@ import Model (Player, Dir, Grid, Cell)
 import Data.List (minimumBy)
 import Data.Ord (comparing)
 import qualified Data.Set as Set
-import Items
+
+data Item = Item {
+    position :: Position,
+    itemType :: ItemType,
+    eaten :: Bool
+
+} deriving (Show, Eq)
+
+type Position = (Float, Float)
+
+data ItemType = SmallDot | BigDot | Fruit | Cherry | Strawberry | Orange | Apple | Melon deriving (Show, Eq)
+
+
 
 -- | Handle one iteration of the game
 step :: Float -> GameState -> IO GameState
+step _ gstate | paused gstate = return gstate
 step secs gstate = return gstate
   { player = updatedPlayer
   , ghosts =
-      map (moveGhost (veld gstate) True (cell updatedPlayer) (movingP updatedPlayer) secs)
-        (ghosts gstate)
+      map (moveGhost (veld gstate) (not ( any isHunting (ghosts gstate))) (cell updatedPlayer) (movingP updatedPlayer) secs)
+        (updateHunting secs (ghosts updatedState))
   , veld = veld (eatenItem gstate (whichItem gstate))
+  , score = score (eatenItem gstate (whichItem gstate))
+  , highscore = max (highscore gstate) (score (eatenItem gstate (whichItem gstate)))
   }
   where
     updatedPlayer = updatePlayer (veld gstate) secs (player gstate)
+    updatedState = eatenItem gstate (whichItem gstate)
 
 -- | Determine whether there's an item on the location
 whichItem :: GameState -> Maybe ItemType
 whichItem gstate | veld gstate !! y !! x == "o"    = Just SmallDot
                  | veld gstate !! y !! x == "0"    = Just BigDot
+                 | veld gstate !! y !! x == "c"    = Just Cherry
                  | otherwise                       = Nothing
                      where (x,y) = cell (player gstate)
 
 -- | Handle user input
 input :: Event -> GameState -> IO GameState
-input e gstate = return gstate
-  { player = handleInput e (player gstate) }
+input e gstate = return (handleStateInput e gstate)
+
 
 -- Constant speed
 speed :: Float
 speed = 6
 
--- Input handler that handles WASD and arrows, even with caps lock on
-handleInput :: Event -> Player -> Player
-handleInput (EventKey (Char k) Down _ _) p = case k of
+
+handleStateInput :: Event -> GameState -> GameState
+handleStateInput (EventKey (SpecialKey KeySpace) Down _ _) gstate =
+  gstate { paused = not (paused gstate) }
+handleStateInput e gstate = if paused gstate
+  then gstate
+  else
+  gstate { player = handlePlayerInput e (player gstate) }
+
+
+
+-- Input handler for player that handles WASD and arrows, even with caps lock on
+handlePlayerInput :: Event -> Player -> Player
+handlePlayerInput (EventKey (Char k) Down _ _) p = case k of
   'w' -> p { wanted = DUp, pict = PacU }
   's' -> p { wanted = DDown, pict = PacD }
   'a' -> p { wanted = DLeft, pict = PacL }
@@ -49,13 +77,14 @@ handleInput (EventKey (Char k) Down _ _) p = case k of
   'A' -> p { wanted = DLeft, pict = PacL }
   'D' -> p { wanted = DRight, pict = PacR }
   _   -> p
-handleInput (EventKey (SpecialKey k) Down _ _) p = case k of
+
+handlePlayerInput (EventKey (SpecialKey k) Down _ _) p = case k of
   KeyUp    -> p { wanted = DUp, pict = PacU }
   KeyDown  -> p { wanted = DDown, pict = PacD }
   KeyLeft  -> p { wanted = DLeft, pict = PacL }
   KeyRight -> p { wanted = DRight, pict = PacR }
   _        -> p
-handleInput _ p = p
+handlePlayerInput _ p = p
 
 -- Smooth positioning for visuals
 smoothCell :: Player -> (Float, Float)
@@ -91,20 +120,25 @@ stepCell grid d (c, r) | c == 0                       = (length (grid !! r) - 1 
                        | otherwise                    = (c + dx, r + dy)
   where (dx, dy) = toVector d
 
--- Wall Checker (True if wall)
-isWall :: Grid -> Cell -> Bool
-isWall grid (c, r)
+-- Wall Checker (return True if wall). Second argument checks for the ghost tunnel, which is not a wall for ghosts.
+isWall :: Grid -> Bool -> Cell -> Bool
+--Base case for Player.
+isWall grid True (c, r)
   | r < 0 || r >= length grid = True
   | c < 0 || c >= length (grid !! r) = True
-  -- toegevoegd: ook het startvak van de geestjes is een muur
-  | otherwise = grid !! r !! c == "w" || grid !! r !! c == "n" || grid !! r !! c == "r" || grid !! r !! c == "l" || grid !! r !! c == "-" || grid !! r !! c == "_"
+  | otherwise = grid !! r !! c == "w"  || grid !! r !! c == "r" || grid !! r !! c == "l" || grid !! r !! c == "-" || grid !! r !! c == "_" ||  grid !! r !! c == "d"
+--Base case for Ghosts, which can go through the tunnel.
+isWall grid False (c, r)
+  | r < 0 || r >= length grid = True
+  | c < 0 || c >= length (grid !! r) = True
+  | otherwise = grid !! r !! c == "w"  || grid !! r !! c == "r" || grid !! r !! c == "l" || grid !! r !! c == "-" || grid !! r !! c == "_"
 
--- Main updator of the player functions. Handles movement, directions etc.
+-- Main updater of the player functions. Handles movement, directions etc.
 updatePlayer :: Grid -> Float -> Player -> Player
 updatePlayer grid dt p
   | movingP p /= DNone && wanted p == opposite (movingP p) =
-      p { cell     = next p
-        , next     = cell p
+      p { cell      = next p
+        , next      = cell p
         , movingP   = wanted p
         , progressP = 1 - progressP p }
   | movingP p == DNone = settle grid p
@@ -119,7 +153,7 @@ settle grid p = case pick of
   DNone -> p { movingP = DNone, next = cell p, progressP = 0 }
   d     -> p { movingP = d, next = stepCell grid d (cell p) }
   where
-    open d = d /= DNone && not (isWall grid (stepCell grid d (cell p)))
+    open d = d /= DNone && not (isWall grid True (stepCell grid d (cell p)))
     pick
       | open (wanted p) = wanted p
       | open (movingP p) = movingP p
@@ -175,7 +209,7 @@ directions = [DUp, DLeft, DDown, DRight]
 distTo :: Cell -> Cell -> Int
 distTo (a, b) (c, d) = (a - c) ^ 2 + (b - d) ^ 2
 
--- Iplementation of BFS on the grid.
+-- Implementation of BFS on the grid.
 reachable :: Grid -> Cell -> [(Cell, Dir)]
 reachable grid start = go (Set.singleton start) [(start, DNone)]
   where
@@ -190,7 +224,7 @@ reachable grid start = go (Set.singleton start) [(start, DNone)]
         (found, seen1) = foldl visit ([], seen) directions
         (more, seen2)  = expandAll seen1 rest
         visit (acc, s) d
-          | isWall grid n || Set.member n s = (acc, s)
+          | isWall grid False n || Set.member n s = (acc, s)
           | otherwise =
               ( acc ++ [(n, if firstDir == DNone then d else firstDir)]
               , Set.insert n s )
@@ -223,3 +257,47 @@ moveGhost :: Grid -> Bool -> Cell -> Dir -> Float -> BaseGhost -> BaseGhost
 moveGhost grid isHunting playerCell playerDir dt g =
   updateGhost grid dt (ghostTarget grid isHunting playerCell playerDir g) g
 
+updateHunting :: Float -> [BaseGhost] -> [BaseGhost]
+updateHunting dt = map (\g -> g { hunting = max 0 (hunting g - dt) })
+
+setHunting :: Float -> [BaseGhost] -> [BaseGhost]
+setHunting t = map (\g -> g { hunting = t })
+
+isHunting :: BaseGhost -> Bool
+isHunting g = hunting g > 0
+
+
+points :: ItemType -> Int
+points SmallDot = 10
+points BigDot = 50
+points Cherry = 100
+points Strawberry = 300
+points Orange = 500
+points Apple = 700
+points Melon = 1000
+
+eatenItem :: GameState -> Maybe ItemType -> GameState
+eatenItem gameState item = 
+    case item of
+        Just SmallDot -> gameState { score = score gameState + points SmallDot, veld = newveld}
+        Just BigDot -> gameState { score = score gameState + points BigDot, veld = newveld, ghosts = (setHunting (10.0)) (ghosts gameState)}
+        Just Cherry -> gameState { score = score gameState + points Cherry, veld = newveld}
+        Just Strawberry -> gameState { score = score gameState + points Strawberry, veld = newveld}
+        Just Orange -> gameState { score = score gameState + points Orange, veld = newveld}
+        Just Apple -> gameState { score = score gameState + points Apple, veld = newveld}
+        Just Melon -> gameState { score = score gameState + points Melon, veld = newveld}
+        Nothing -> gameState
+    where 
+        newveld = replaceAt "n" x y (veld gameState)
+        (x,y) = cell (player gameState)
+
+replaceAt :: String -> Int -> Int -> [[String]] -> [[String]]
+replaceAt _ _ _ [] = []
+replaceAt s 0 0 ((x:xs):ys) = ((s:xs):ys)
+replaceAt s i 0 ((x:xs):ys) = ((x: replaceAt2 s (i-1) xs): ys)
+replaceAt s i j ((x:xs):ys) = ((x:xs): replaceAt s i (j-1) ys)
+
+replaceAt2 :: String -> Int -> [String] -> [String]
+replaceAt2 _ _ [] = []
+replaceAt2 s 0 (x:xs) = (s:xs)
+replaceAt2 s i (x:xs) = (x: replaceAt2 s (i-1) xs)

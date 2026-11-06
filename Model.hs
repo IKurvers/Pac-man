@@ -19,14 +19,13 @@ data Player = Player
   movingP   :: Dir,
   wanted   :: Dir,
   progressP :: Float,
-  hunting  :: Int,
   pict     :: PacPict
   } deriving (Show, Eq)
 
 -- Places the player at the start of the game
 initialPlayer :: Cell -> Player
 initialPlayer c = Player
-  { cell = c, next = c, movingP = DNone, wanted = DNone, progressP = 0, hunting = 0, pict = PacR }
+  { cell = c, next = c, movingP = DNone, wanted = DNone, progressP = 0, pict = PacR }
 
 data BaseGhost = BaseGhost
   {
@@ -35,13 +34,14 @@ data BaseGhost = BaseGhost
   moving :: Dir,
   progress :: Float,
   ghostSpeed :: Float,
-  ghostName :: GhostName
+  ghostName :: GhostName,
+  hunting :: Float
   } deriving (Show, Eq)
 
 newGhost :: GhostName -> Cell -> BaseGhost
 newGhost n c = BaseGhost
   { ghostCell = c, nextCell = c, moving = DNone
-  , progress = 0, ghostSpeed = 5, ghostName = n }
+  , progress = 0, ghostSpeed = 5, ghostName = n, hunting = 0 }
 
 -- score, highscore en lives toegevoegd
 data GameState = GameState
@@ -51,6 +51,7 @@ data GameState = GameState
   , score :: Int
   , highscore :: Int
   , lives :: Float
+  , paused :: Bool
   }
 
 initialState :: [[String]] -> GameState
@@ -66,4 +67,5 @@ initialState grid = GameState
   , score = 0
   , highscore = 0
   , lives = 3
+  , paused = False
   }
