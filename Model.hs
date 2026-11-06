@@ -13,7 +13,7 @@ data GhostName = Blinky | Pinky | Inky | Clyde
   deriving (Show, Eq, Read)
 
 data GhostMode = Normal | Eyes
-  deriving (Show, Eq)
+  deriving (Show, Eq, Read)
 
 data Player = Player
   {
@@ -75,7 +75,7 @@ initialState allLines = GameState
 
 -- Helper function to read the ghost information
 readGhost :: [String] -> BaseGhost
-readGhost [cLine, nLine, movLine, progLine, speedLine, nameLine, huntLine] =
+readGhost [cLine, nLine, movLine, progLine, speedLine, nameLine, huntLine, modeLine] =
     BaseGhost {
         ghostCell  = read cLine,
         nextCell   = read nLine,
@@ -83,7 +83,9 @@ readGhost [cLine, nLine, movLine, progLine, speedLine, nameLine, huntLine] =
         progress   = read progLine,
         ghostSpeed = read speedLine,
         ghostName  = read nameLine,
-        hunting    = read huntLine
+        hunting    = read huntLine,
+        ghostMode  = read modeLine,
+        ghostHome  = read cLine
     }
 readGhost _ = error "Invalid ghost save data format"
 
