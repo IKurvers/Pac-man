@@ -22,16 +22,18 @@ main = do
     geest2 <- loadJuicyPNG "geest2.png"
     geest3 <- loadJuicyPNG "geest3.png"
     geest4 <- loadJuicyPNG "geest4.png"
+    oogjes <- loadJuicyPNG "oogjes.png"
+    doodGeest <- loadJuicyPNG "doodGeest.png"
     kers <- loadJuicyPNG "cherry.png"
     hart <- loadJuicyPNG "hart.png"
 
-    case (pics, geest1, geest2, geest3, geest4, kers, hart) of
-        (Just ps, Just g1, Just g2, Just g3, Just g4, Just k, Just h) ->
+    case (pics, geest1, geest2, geest3, geest4, kers, hart, oogjes, doodGeest) of
+        (Just ps, Just g1, Just g2, Just g3, Just g4, Just k, Just h, Just o, Just dood) ->
             playIO (InWindow "Pac-man" (620, 685) (340, 0))
                     black
                     10
                     beginstaat
-                    (view gen ps g1 g2 g3 g4 k h)
+                    (view gen ps g1 g2 g3 g4 k h o dood)
                     input
                     step
 
