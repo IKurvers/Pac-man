@@ -382,7 +382,7 @@ save gstate = do
 reset :: GameState -> IO GameState
 reset gstate= do
     textinput <- readFile "veld_pac-man.txt"
-    let beginstaat = initialState (lines textinput) 
+    let beginstaat = initialState (map words (lines textinput))
     let maxstaat = beginstaat { highscore = maximum [highscore gstate, score gstate, highscore beginstaat] }
     save maxstaat
     return maxstaat

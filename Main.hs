@@ -12,7 +12,7 @@ main :: IO ()
 main = do
     textinput <- readFile "SaveState.txt"
     let beginveld = map words (lines textinput)
-    let beginstaat = initialState (lines textinput)
+    let beginstaat = initialState (map words (lines textinput))
 
     gen <- getStdGen
 
