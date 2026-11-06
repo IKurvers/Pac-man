@@ -97,7 +97,7 @@ tekenLine fruit (h:t) x y g       | h=="w"        = (pictures [translate x y (co
                                            (r2,g') =  tekenLine fruit t (x+20) y g''
 
 randomFruit :: Picture -> StdGen -> (Picture, StdGen)
-randomFruit fruit g | r <= 97   = (color yellow(circleSolid 2), g')
+randomFruit fruit g  | r <= 97   = (color yellow(circleSolid 2), g')
                      | otherwise = (scale 0.06 0.06 fruit, g')
                         where (r,g') = randomR(1 :: Int, 100 :: Int) g
 
