@@ -4,13 +4,13 @@ type Grid = [[String]]
 type Cell = (Int, Int)
 
 data Dir = DUp | DDown | DLeft | DRight | DNone
-  deriving (Show, Eq)
+  deriving (Show, Eq, Read)
 
 data PacPict = PacU | PacD | PacL | PacR
-  deriving (Show, Eq)
+  deriving (Show, Eq, Read)
 
 data GhostName = Blinky | Pinky | Inky | Clyde
-  deriving (Show, Eq)
+  deriving (Show, Eq, Read)
 
 data GhostMode = Normal | Eyes
   deriving (Show, Eq, Read)
